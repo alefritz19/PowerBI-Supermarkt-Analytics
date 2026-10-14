@@ -84,6 +84,7 @@ erDiagram
 ```text
 PowerBI-Supermarkt-Analytics/
 ├── README.md                                          # Projektübersicht & Schnellstart
+├── 00_anleitung_die_3_ebenen_in_power_bi.md           # Architektur-Leitfaden: Das 3-Ebenen-Prinzip
 │
 ├── 01_Data_Model_Architecture/
 │   ├── 01_star_schema_design.md                       # Modellierungsregeln & Kardinalitäten

@@ -1,12 +1,11 @@
-# 🧭 Power BI Anleitung: Das 3-Ebenen-Prinzip (Учёт 3 этажей)
-### Praktischer Leitfaden: Wo welcher Code und welches Design in Power BI Desktop platziert wird
-### Практическая инструкция: куда какой код и какой файл вставлять в Power BI Desktop
+# 🧭 Power BI Architektur-Leitfaden: Das 3-Ebenen-Prinzip
+### Praktischer Leitfaden: Platzierung von M-Code, DAX-Measures und Report-Design in Power BI Desktop
 
 ---
 
-## 🇩🇪 Zusammenfassung auf Deutsch: Das 3-Ebenen-Modell
+## 🏗️ Das 3-Ebenen-Architekturmodell
 
-In Microsoft Power BI Desktop gibt es **drei getrennte Ebenen (Stockwerke)**. Jede Datei aus dem Projekt gehört genau auf ihre eigene Ebene:
+In Microsoft Power BI Desktop basiert eine skalierbare und saubere Projektstruktur auf **drei strikt getrennten Ebenen**. Jede Datei und jede Code-Art aus diesem Repository gehört genau auf ihre definierte Ebene:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -23,79 +22,79 @@ In Microsoft Power BI Desktop gibt es **drei getrennte Ebenen (Stockwerke)**. Je
 
 ---
 
-## 🇷🇺 Подробное руководство на русском языке: «Учёт 3 этажей»
+## 🟢 EBENE 1: Datenaufnahme & Transformation (Power Query / Sprache M)
 
-### 🟢 ЭТАЖ 1: Загрузка и трансформация данных (Язык M / Power Query)
-**Что сюда относится:** файл `fx_DateTable_German.m` и скрипты `transform_supermarkt_data.m`.
+* **Zugehörige Dateien:** `fx_DateTable_German.m` und `transform_supermarkt_data.m` aus dem Verzeichnis `02_Power_Query_M_Scripts/`.
+* **Architektur-Grundsatz:** Die Abfragesprache **M** agiert ausschließlich in der **ETL-Phase (Extract, Transform, Load)** im separaten Power Query Editor. Sie dient der Datenbereinigung, Typisierung und Tabellengenerierung, bevor die Daten in das VertiPaq-In-Memory-Modell geladen werden.
 
-Язык **M** работает **только внутри редактора Power Query**, а не на главном экране.
-
-#### Пошаговые действия:
-1. В главном окне Power BI на верхней ленте нажми кнопку **«Daten transformieren»** *(Transform Data)*.
-2. Откроется отдельное окно редактора Power Query.
-3. В меню нажми: **«Neue Quelle»** *(New Source)* ➔ **«Leere Abfrage»** *(Blank Query)*.
-4. Вверху нажми кнопку **«Erweiterter Editor»** *(Advanced Editor)*.
-5. Полностью сотри текст по умолчанию и вставь M-код из файла `fx_DateTable_German.m`.
-6. Назови запрос слева: `dim_datum`.
-7. Нажми кнопку **«Schließen & übernehmen»** *(Close & Apply)* в левом верхнем углу.
+### Schritt-für-Schritt-Anleitung:
+1. Im Menüband von Power BI Desktop auf **„Daten transformieren“** (*Transform Data*) klicken.
+2. Es öffnet sich das dedizierte Power Query Editor-Fenster.
+3. Im Menüband auf **„Neue Quelle“** (*New Source*) ➔ **„Leere Abfrage“** (*Blank Query*) klicken.
+4. In der Menüleiste auf **„Erweiterter Editor“** (*Advanced Editor*) klicken.
+5. Den Standardcode vollständig durch den M-Code aus der Datei `fx_DateTable_German.m` ersetzen.
+6. Die Abfrage im linken Navigationsbereich in `dim_datum` umbenennen.
+7. Oben links auf **„Schließen & übernehmen“** (*Close & Apply*) klicken.
 
 ---
 
-### 🔵 ЭТАЖ 2: Формулы и математика (Язык DAX & Модель данных)
-**Что сюда относится:** все файлы из папки `03_DAX_Measures_Library/` (`*.dax`).
+## 🔵 EBENE 2: Semantisches Modell & Geschäftslogik (Sternschema & DAX)
 
-Язык **DAX** живет в основном окне Power BI и отвечает за бизнес-логику и вычисления.
+* **Zugehörige Dateien:** Alle DAX-Dateien aus `03_DAX_Measures_Library/` (`*.dax`) sowie `01_star_schema_design.md`.
+* **Architektur-Grundsatz:** **DAX (Data Analysis Expressions)** operiert auf dem bereits geladenen Datenmodell. DAX transformiert keine Tabellenzeilen dauerhaft, sondern berechnet aggregierte Kennzahlen dynamisch im jeweiligen Filterkontext.
 
-#### Пошаговые действия:
-* **Способ 1 (Через строку формул на ленте):**
-  1. В панели таблиц справа выдели таблицу (лучше создать отдельную пустую таблицу `_Measures`).
-  2. На главной ленте вверху нажми **«Neues Measure»** *(New Measure)*.
-  3. В появившуюся строку формул вставь DAX-код (например: `Total_Umsatz = SUM(fct_verkaeufe[Gesamtbetrag])`) и нажми Enter.
-* **Способ 2 (Через новую вкладку слева):**
-  1. На левой вертикальной полосе Power BI выбери 4-ю иконку снизу — **«DAX-Abfrageansicht»** *(DAX Query View)*.
-  2. Там можно пакетно просматривать, тестировать и определять меры.
+### Schritt-für-Schritt-Anleitung:
 
-#### Настройка связей (Звездная схема):
-* На левой панели нажми 3-ю иконку — **«Modellansicht»** *(Model View)*.
-* Соедини мышкой:
-  * `dim_datum[Datum]` ➔ `fct_verkaeufe[EinkaufDatum]`
-  * `dim_kunden[KundeID]` ➔ `fct_verkaeufe[KundeID]`
-  * `dim_produkte[ProduktID]` ➔ `fct_verkaeufe[ProduktID]`
-  * `dim_mitarbeiter[MitarbeiterID]` ➔ `fct_verkaeufe[MitarbeiterID]`
-* Убедись, что связи имеют вид **1:n (Eins-zu-Viele)** с направлением фильтрации **«Einfach» (Single)**.
+#### 1. DAX-Measures anlegen:
+* **Methode A (Über die Formelleiste):**
+  1. Im Datenbereich rechts die Zieltabelle auswählen (Best Practice: Eine dedizierte Kennzahlentabelle `_Measures` anlegen).
+  2. Im Menüband auf **„Neues Measure“** (*New Measure*) klicken.
+  3. Die DAX-Formel aus der Bibliothek einfügen (z. B. `Total_Umsatz = SUM(fct_verkaeufe[Gesamtbetrag])`) und mit der Eingabetaste bestätigen.
+* **Methode B (Über die DAX-Abfrageansicht / DAX Query View):**
+  1. In der linken vertikalen Navigationsleiste auf das 4. Symbol klicken: **„DAX-Abfrageansicht“**.
+  2. Hier können DAX-Formeln im Stapel editiert, formatiert, analysiert und direkt im Datenmodell gespeichert werden.
 
----
-
-### 🟣 ЭТАЖ 3: Визуализация и Дизайн Дашборда (Report Canvas / Холст)
-**Что сюда относится:** файлы `corporate_theme.json` и спецификация `dashboard_layout_specification.md`.
-
-Сам дашборд не пишется текстом программы — он **собирается визуально мышкой** на белом листе (1-я иконка слева — **Berichtsansicht / Report View**).
-
-#### 1. Как применить цветовую тему (`corporate_theme.json`):
-1. В верхнем горизонтальном меню перейди во вкладку **«Ansicht»** *(View)*.
-2. В блоке тем нажми стрелочку вниз, чтобы раскрыть палитру тем.
-3. Внизу выпадающего списка нажми: **«Design suchen»** *(Browse for themes)*.
-4. Выбери файл `corporate_theme.json` из папки `04_Report_Design_and_Mockups`.
-5. Готово! Все шрифты, карточки и палитра графиков мгновенно станут профессиональными.
-
-#### 2. Как расставлять графики по инструкции (`dashboard_layout_specification.md`):
-Файл `dashboard_layout_specification.md` — это твой архитектурный план:
-* Из панели **«Visualisierungen»** справа выбираешь тип графика (карточка KPI, линейный график, гистограмма, матрица).
-* Из панели **«Daten»** перетаскиваешь в график нужные DAX-меры (созданные на Этаже 2).
-* Расставляешь их по сетке:
-  - **Верхняя полоса:** ключевые карточки KPI со стрелками роста (▲ / ▼).
-  - **Центр:** графики трендов во времени и структура категорий.
-  - **Низ:** детальная таблица-матрица с возможностью проваливаться в детали.
+#### 2. Modellbeziehungen konfigurieren (Sternschema):
+1. In der linken Navigationsleiste auf das 3. Symbol klicken: **„Modellansicht“** (*Model View*).
+2. Primärschlüssel (1-Seite) per Drag & Drop mit den Fremdschlüsseln (n-Seite) der Faktentabelle verbinden:
+   * `dim_datum[Datum]` ➔ `fct_verkaeufe[EinkaufDatum]`
+   * `dim_kunden[KundeID]` ➔ `fct_verkaeufe[KundeID]`
+   * `dim_produkte[ProduktID]` ➔ `fct_verkaeufe[ProduktID]`
+   * `dim_mitarbeiter[MitarbeiterID]` ➔ `fct_verkaeufe[MitarbeiterID]`
+3. Sicherstellen, dass alle Beziehungen die Kardinalität **1:n (Eins-zu-Viele)** und eine **einfache Filterrichtung (Single)** aufweisen.
 
 ---
 
-## 📋 Сводная шпаргалка: Куда нести каждый файл из проекта
+## 🟣 EBENE 3: Visualisierung & Report-Design (Berichtsansicht / Canvas)
 
-| Файл из шаблона | Какой это этаж | Куда нажимать в Power BI Desktop |
+* **Zugehörige Dateien:** `corporate_theme.json` und `dashboard_layout_specification.md` aus dem Verzeichnis `04_Report_Design_and_Mockups/`.
+* **Architektur-Grundsatz:** Das Frontend des Berichts wird auf der **Berichtsansicht** (1. Symbol links oben) zusammengestellt. Hier werden visuelle Elemente nach Usability-, IBCS- und Corporate-Design-Standards angeordnet.
+
+### Schritt-für-Schritt-Anleitung:
+
+#### 1. Corporate Design Theme importieren (`corporate_theme.json`):
+1. Im oberen horizontalen Menüband auf die Registerkarte **„Ansicht“** (*View*) wechseln.
+2. Im Bereich **„Designs“** den Dropdown-Pfeil anklicken, um die Design-Galerie zu öffnen.
+3. Unten im Menü auf **„Nach Designs suchen“** (*Browse for themes*) klicken.
+4. Die Datei `corporate_theme.json` aus dem Verzeichnis `04_Report_Design_and_Mockups/` auswählen.
+5. Alle visuellen Standardwerte (Schriftarten, Farben, KPI-Kartenränder und Hintergründe) werden automatisch im gesamten Bericht angewendet.
+
+#### 2. Visuals gemäß Layout-Spezifikation platzieren (`dashboard_layout_specification.md`):
+* Die Datei `dashboard_layout_specification.md` definiert das exakte Grid- und Seitenlayout:
+  * **Kopfbereich (Header):** Berichts-Titel, Firmenlogo, globale Slicer (Zeitraum, Filiale).
+  * **Obere KPI-Leiste:** 4 bis 5 prägnante KPI-Karten mit Trendindikatoren (▲ / ▼) und Vorjahresvergleichen.
+  * **Mittelbereich:** Zeitreihendiagramme (Umsatzverlauf) sowie Strukturanalysen (Kategorien, Kundengruppen).
+  * **Unterer Bereich:** Detaillierte Matrix mit Drill-Down-Möglichkeiten zur interaktiven Tiefenanalyse.
+
+---
+
+## 📋 Übersicht: Zuordnung der Projektdateien zu den Ebenen
+
+| Projektdatei / Modul | Architekturebene | Pfad & Aktion in Power BI Desktop |
 | :--- | :--- | :--- |
-| **`fx_DateTable_German.m`** | **Этаж 1 (Power Query)** | Верхнее меню ➔ *Daten transformieren* ➔ *Neue Quelle* ➔ *Erweiterter Editor* |
-| **`transform_supermarkt_data.m`** | **Этаж 1 (Power Query)** | Редактор Power Query ➔ настройки источника SQL Server |
-| **`01_star_schema_design.md`** | **Этаж 2 (Модель)** | Левая панель, 3-я иконка (*Modellansicht*) ➔ протянуть связи 1:n мышкой |
-| **`*.dax` (все формулы)** | **Этаж 2 (DAX)** | Верхняя кнопка *Neues Measure* или 4-я иконка слева (*DAX Query View*) |
-| **`corporate_theme.json`** | **Этаж 3 (Дизайн)** | Верхнее меню ➔ вкладка *Ansicht* ➔ раскрыть темы ➔ *Design suchen* |
-| **`dashboard_layout_specification.md`** | **Этаж 3 (Дизайн)** | Читать как чертеж: на белом листе отчета расставлять карточки и диаграммы |
+| **`fx_DateTable_German.m`** | **Ebene 1 (Power Query)** | Menüband ➔ *Daten transformieren* ➔ *Neue Quelle* ➔ *Erweiterter Editor* |
+| **`transform_supermarkt_data.m`** | **Ebene 1 (Power Query)** | Power Query Editor ➔ SQL Server Quellabfragen & Transformationen |
+| **`01_star_schema_design.md`** | **Ebene 2 (Modell)** | Linke Leiste: *Modellansicht* (3. Symbol) ➔ 1:n Beziehungen verknüpfen |
+| **`*.dax` (Alle Measures)** | **Ebene 2 (DAX)** | Menüband: *Neues Measure* oder linke Leiste: *DAX-Abfrageansicht* (4. Symbol) |
+| **`corporate_theme.json`** | **Ebene 3 (Design)** | Menüband: Registerkarte *Ansicht* ➔ *Designs* ➔ *Nach Designs suchen* |
+| **`dashboard_layout_specification.md`** | **Ebene 3 (Canvas)** | *Berichtsansicht* (1. Symbol) ➔ Visuals nach Spezifikations-Grid anordnen |

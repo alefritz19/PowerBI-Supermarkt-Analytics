@@ -82,8 +82,8 @@ Das Modell ist strikt als **Kimball-Sternschema** ohne zirkuläre Abhängigkeite
 
 ```mermaid
 erDiagram
-    dim_datum ||--o{ fct_verkaeufe : "1:n (DatumKey / BonDatum)"
-    dim_datum ||--o{ fct_abschreibungen : "1:n (DatumKey / Datum)"
+    dim_datum ||--o{ fct_verkaeufe : "1:n (DatumKey)"
+    dim_datum ||--o{ fct_abschreibungen : "1:n (DatumKey)"
     dim_filialen ||--o{ fct_verkaeufe : "1:n (FilialeID)"
     dim_filialen ||--o{ fct_abschreibungen : "1:n (FilialeID)"
     dim_kunden ||--o{ fct_verkaeufe : "1:n (KundeID)"
@@ -96,109 +96,70 @@ erDiagram
         int PositionID PK
         int BonID
         int DatumKey FK
-        date BonDatum
-        time BonUhrzeit
         int FilialeID FK
         int KundeID FK
         int MitarbeiterID FK
         int ProduktID FK
         int AktionID FK
         smallint Menge
-        decimal Einzelpreis
-        decimal RabattBetrag
-        decimal UmsatzBrutto
-        decimal MwStBetrag
-        decimal UmsatzNetto
-        decimal WareneinsatzNetto
+        decimal Bruttoumsatz
+        decimal Nettoumsatz
         decimal Rohertrag
-        decimal MargeProzent
-        string Zahlungsart
     }
 
     fct_abschreibungen {
         int AbschreibungID PK
         int DatumKey FK
-        date Datum
         int FilialeID FK
         int ProduktID FK
         int Menge
         string Grund
-        decimal EK_Netto
-        decimal VerlustNettoEUR
+        decimal Verlust_Netto_EUR
     }
 
     dim_produkte {
         int ProduktID PK
         string EAN
-        string ProduktName
-        int KategorieID
-        string KategorieName
-        string Warenbereich
-        boolean IstFrischware
-        string Marke
+        string Produktname
+        string Warengruppe
+        boolean IstFrischeware
         boolean IstEigenmarke
-        string Saisonprofil
-        decimal StandardVerkaufspreis
-        decimal StandardHerstellkosten
     }
 
     dim_kunden {
         int KundeID PK
         string Kundennummer
-        string Anrede
-        string KundenName
-        string Geschlecht
-        int AlterJahre
         string Altersgruppe
         string PLZ
-        string Stadt
-        boolean NewsletterOptIn
-        date Registrierungsdatum
         int StammfilialeID
     }
 
     dim_filialen {
         int FilialeID PK
-        string Filialcode
-        string FilialName
-        string Stadt
+        string Filialname
         string Bundesland
-        string Region
-        int VerkaufsflaecheQM
+        int Verkaufsflaeche_QM
     }
 
     dim_mitarbeiter {
         int MitarbeiterID PK
         string Personalnummer
-        string MitarbeiterName
         string Position
-        int FilialeID
     }
 
     dim_aktionen {
         int AktionID PK
-        string AktionName
-        string Aktionstyp
-        decimal RabattProzent
-        date StartDatum
-        date EndDatum
+        string Aktionsname
+        decimal Rabatt_Prozent
     }
 
     dim_datum {
         int DatumKey PK
         date Datum
         smallint Jahr
-        string Quartal
-        tinyint MonatNr
-        string MonatName
-        string JahrMonat
-        tinyint TagImMonat
+        tinyint Monat_Nr
         tinyint KW
-        string WochentagName
-        boolean IstWochenende
         boolean IstFeiertag
-        boolean IstVerkaufstag
-        string Saison
     }
 ```
 
@@ -208,6 +169,7 @@ erDiagram
 
 ```text
 PowerBI-Supermarkt-Analytics/
+├── .gitattributes                                     # GitHub Linguist Overrides (DAX/TSQL Erkennung)
 ├── README.md                                          # Projektübersicht, Insights & Architektur
 ├── 00_anleitung_die_3_ebenen_in_power_bi.md           # Architektur-Leitfaden: Das 3-Ebenen-Prinzip
 │
@@ -254,12 +216,3 @@ PowerBI-Supermarkt-Analytics/
   👉 [https://learn.microsoft.com/de-de/powerquery-m/](https://learn.microsoft.com/de-de/powerquery-m/)
 * 📊 **Microsoft Power BI Dokumentation:**  
   👉 [https://learn.microsoft.com/de-de/power-bi/](https://learn.microsoft.com/de-de/power-bi/)
-
----
-
-## 💼 Bewerbung & Interview-Leitfaden (DACH-Markt)
-
-Dieses Projekt demonstriert im Vorstellungsgespräch:
-* **Geschäftsorientierte Denkweise:** Keine reinen Code-Beispiele, sondern konkrete Antworten auf unternehmerische Fragen (Deckungsbeitragsanalyse, Sortimentsoptimierung nach ABC/Pareto, MHD-Abschreibungen).
-* **Tiefes DAX-Verständnis:** Beherrschung von Zeilen- vs. Filterkontext, Context Transition bei `CALCULATE`, `KEEPFILTERS` zur Wahrung äußerer Filter und dynamische Rankings.
-* **Architektonische Disziplin:** Klare Trennung von ETL im SQL Server/Power Query und analytischer Aggregation in DAX.

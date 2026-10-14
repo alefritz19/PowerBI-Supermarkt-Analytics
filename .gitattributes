@@ -1,0 +1,6 @@
+# GitHub Linguist Overrides
+# Korrigiert die falsche Erkennung von Power Query M (.m) als MATLAB / Wolfram
+*.m linguist-detectable=false
+*.pq linguist-language=PowerQuery
+*.dax linguist-language=DAX
+*.sql linguist-language=TSQL

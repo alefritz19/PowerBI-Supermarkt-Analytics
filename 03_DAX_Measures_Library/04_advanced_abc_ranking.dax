@@ -1,0 +1,62 @@
+// ================================================================================
+// 03_DAX_Measures_Library / 04_advanced_abc_ranking.dax
+// Sortimentsanalyse, dynamische Produkt-Rangfolge & ABC-Pareto in DAX
+// ================================================================================
+
+// 1. Relativer Umsatzanteil des gewählten Produkts am Gesamtkatalog
+Umsatz_Anteil_Gesamt_Pct = 
+DIVIDE(
+    [Total_Umsatz],
+    CALCULATE([Total_Umsatz], ALLSELECTED(dim_produkte)),
+    0
+)
+
+// 2. Dynamischer Produktrang nach Umsatz
+Produkt_Umsatz_Rang = 
+IF(
+    ISINSCOPE(dim_produkte[ProduktName]),
+    RANKX(
+        ALLSELECTED(dim_produkte[ProduktName]),
+        [Total_Umsatz],
+        ,
+        DESC,
+        Dense
+    )
+)
+
+// 3. Kumulierter Umsatz über die Rangfolge (Basis für Pareto-Kurve)
+Umsatz_Kumuliert = 
+VAR CurrentProductRevenue = [Total_Umsatz]
+VAR RankedProducts = 
+    ADDCOLUMNS(
+        ALLSELECTED(dim_produkte[ProduktName]),
+        "@Revenue", [Total_Umsatz]
+    )
+RETURN
+IF(
+    ISINSCOPE(dim_produkte[ProduktName]),
+    SUMX(
+        FILTER(RankedProducts, [@Revenue] >= CurrentProductRevenue),
+        [@Revenue]
+    )
+)
+
+// 4. Kumulierter Prozentanteil an Gesamtsumme
+Kumulierter_Anteil_Pct = 
+DIVIDE(
+    [Umsatz_Kumuliert],
+    CALCULATE([Total_Umsatz], ALLSELECTED(dim_produkte)),
+    0
+)
+
+// 5. Dynamische ABC-Klassifizierung nach Pareto
+ABC_Klassifizierung = 
+VAR Pct = [Kumulierter_Anteil_Pct]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK([Total_Umsatz]), BLANK(),
+    Pct <= 0.80, "A-Klasse (Kernsortiment 80%)",
+    Pct <= 0.95, "B-Klasse (Mittleres Sortiment 15%)",
+    "C-Klasse (Nischensortiment 5%)"
+)

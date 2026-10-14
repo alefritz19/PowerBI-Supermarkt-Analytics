@@ -1,0 +1,44 @@
+{
+  "name": "Supermarkt Enterprise Theme",
+  "dataColors": [
+    "#0078D4",
+    "#107C41",
+    "#D83B01",
+    "#FFB900",
+    "#5C2D91",
+    "#008272",
+    "#E3008C",
+    "#004E8C"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#252423",
+  "tableAccent": "#0078D4",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "outspace": [
+          {
+            "color": { "solid": { "color": "#F3F2F1" } }
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [
+          {
+            "fontSize": 24,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "categoryLabels": [
+          {
+            "fontSize": 11,
+            "fontFamily": "Segoe UI",
+            "color": { "solid": { "color": "#605E5C" } }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+// ================================================================================
+// 03_DAX_Measures_Library / 01_base_measures.dax
+// Grundlegende Finanz- und Volumen-Kennzahlen (Base Measures)
+// ================================================================================
+
+// 1. Gesamtumsatz (Total Revenue)
+Total_Umsatz = 
+SUM(fct_verkaeufe[Gesamtbetrag])
+
+// 2. Gesamte abgesetzte Menge (Units Sold)
+Total_Menge = 
+SUM(fct_verkaeufe[Menge])
+
+// 3. Gesamte Herstellkosten (Cost of Goods Sold / COGS)
+Total_Herstellkosten = 
+SUM(fct_verkaeufe[Herstellkosten])
+
+// 4. Absoluter Rohertrag / Deckungsbeitrag (Gross Profit)
+Total_Rohertrag = 
+[Total_Umsatz] - [Total_Herstellkosten]
+
+// 5. Rohertragsmarge in Prozent (Gross Margin %)
+Rohertragsmarge_Pct = 
+DIVIDE([Total_Rohertrag], [Total_Umsatz], 0)
+
+// 6. Anzahl getätigter Einkäufe / Kassenbons (Transactions / Orders)
+Anzahl_Bons = 
+DISTINCTCOUNT(fct_verkaeufe[EinkaufID])
+
+// 7. Durchschnittlicher Bonwert (Average Order Value / AOV)
+Durchschnittsbon_AOV = 
+DIVIDE([Total_Umsatz], [Anzahl_Bons], 0)

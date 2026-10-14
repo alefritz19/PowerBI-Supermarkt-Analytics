@@ -1,0 +1,38 @@
+// ================================================================================
+// 03_DAX_Measures_Library / 03_customer_and_basket_kpis.dax
+// Kunden- & Warenkorb-Kennzahlen (Customer & Basket Analytics)
+// ================================================================================
+
+// 1. Anzahl aktiver Kunden im ausgewählten Zeitraum
+Aktive_Kunden = 
+DISTINCTCOUNT(fct_verkaeufe[KundeID])
+
+// 2. Durchschnittlicher Umsatz pro Kunde (Customer Average Spend)
+Umsatz_pro_Kunde = 
+DIVIDE([Total_Umsatz], [Aktive_Kunden], 0)
+
+// 3. Durchschnittliche Artikelanzahl pro Einkauf (Items per Basket)
+Artikel_pro_Bon = 
+DIVIDE([Total_Menge], [Anzahl_Bons], 0)
+
+// 4. Anzahl Einmalkäufer (One-Time Buyers)
+Einmalkaeufer = 
+COUNTROWS(
+    FILTER(
+        VALUES(fct_verkaeufe[KundeID]),
+        CALCULATE(DISTINCTCOUNT(fct_verkaeufe[EinkaufID])) = 1
+    )
+)
+
+// 5. Anzahl Mehrfachkäufer / Stammkunden (Repeat Buyers)
+Mehrfachkaeufer = 
+COUNTROWS(
+    FILTER(
+        VALUES(fct_verkaeufe[KundeID]),
+        CALCULATE(DISTINCTCOUNT(fct_verkaeufe[EinkaufID])) > 1
+    )
+)
+
+// 6. Wiederkaufrate in Prozent (Repeat Purchase Rate %)
+Wiederkaufrate_Pct = 
+DIVIDE([Mehrfachkaeufer], [Aktive_Kunden], 0)

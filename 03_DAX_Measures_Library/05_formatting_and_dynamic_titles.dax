@@ -1,0 +1,35 @@
+// ================================================================================
+// 03_DAX_Measures_Library / 05_formatting_and_dynamic_titles.dax
+// Dynamische Beschriftungen, KPI-Formatierung & Trendpfeile
+// ================================================================================
+
+// 1. Dynamischer Dashboard-Titel basierend auf gewählten Slicern
+Dynamischer_Berichtstitel = 
+VAR AusgewaehltesJahr = SELECTEDVALUE(dim_datum[Jahr], "Alle Jahre")
+VAR AusgewaehlteKategorie = SELECTEDVALUE(dim_produkte[KategorieName], "Gesamtes Sortiment")
+RETURN
+"Supermarkt Performance Report | " & AusgewaehlteKategorie & " (" & AusgewaehltesJahr & ")"
+
+// 2. YoY Trend-Indikator mit Pfeilsymbol für KPI-Karten
+Umsatz_YoY_Indikator_Text = 
+VAR Growth = [Umsatz_YoY_Wachstum_Pct]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(Growth), "-",
+    Growth > 0, "▲ +" & FORMAT(Growth, "0.0%"),
+    Growth < 0, "▼ " & FORMAT(Growth, "0.0%"),
+    "► 0.0%"
+)
+
+// 3. Farb-Hex-Code für bedingte Formatierung (Conditional Formatting)
+KPI_Farbe_Bedingt = 
+VAR Growth = [Umsatz_YoY_Wachstum_Pct]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(Growth), "#707070",   // Grau
+    Growth >= 0.05,  "#008A00",   // Positiv Grün
+    Growth >= 0,     "#FFB900",   // Neutral Gelb
+    "#D83B01"                     // Negativ Rot
+)

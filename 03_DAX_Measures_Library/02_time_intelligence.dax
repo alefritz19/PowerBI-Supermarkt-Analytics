@@ -1,0 +1,68 @@
+// ================================================================================
+// 03_DAX_Measures_Library / 02_time_intelligence.dax
+// Zeitreihen- & Vorjahresvergleiche (Time Intelligence Measures)
+// Voraussetzung: Markierte Datumstabelle 'dim_datum'[Datum]
+// ================================================================================
+
+// 1. Umsatz Vorjahr (Same Period Last Year / SPLY)
+Umsatz_Vorjahr = 
+CALCULATE(
+    [Total_Umsatz],
+    SAMEPERIODLASTYEAR('dim_datum'[Datum])
+)
+
+// 2. Year-over-Year (YoY) Umsatzwachstum Absolut
+Umsatz_YoY_Wachstum_Absolut = 
+IF(
+    NOT ISBLANK([Umsatz_Vorjahr]),
+    [Total_Umsatz] - [Umsatz_Vorjahr]
+)
+
+// 3. Year-over-Year (YoY) Umsatzwachstum in Prozent
+Umsatz_YoY_Wachstum_Pct = 
+DIVIDE(
+    [Umsatz_YoY_Wachstum_Absolut],
+    [Umsatz_Vorjahr],
+    BLANK()
+)
+
+// 4. Kumulierter Jahresumsatz (Year-to-Date / YTD)
+Umsatz_YTD = 
+TOTALYTD(
+    [Total_Umsatz],
+    'dim_datum'[Datum]
+)
+
+// 5. Kumulierter Jahresumsatz des Vorjahres (YTD Prior Year)
+Umsatz_YTD_Vorjahr = 
+TOTALYTD(
+    [Umsatz_Vorjahr],
+    'dim_datum'[Datum]
+)
+
+// 6. Umsatz Vormonat (Month-over-Month / MoM)
+Umsatz_Vormonat = 
+CALCULATE(
+    [Total_Umsatz],
+    DATEADD('dim_datum'[Datum], -1, MONTH)
+)
+
+// 7. Month-over-Month (MoM) Umsatzwachstum in Prozent
+Umsatz_MoM_Wachstum_Pct = 
+DIVIDE(
+    [Total_Umsatz] - [Umsatz_Vormonat],
+    [Umsatz_Vormonat],
+    BLANK()
+)
+
+// 8. Gleitender 3-Monats-Umsatz (Rolling 3-Month Moving Average)
+Umsatz_Rolling_3M_Avg = 
+CALCULATE(
+    DIVIDE([Total_Umsatz], 3),
+    DATESINPERIOD(
+        'dim_datum'[Datum],
+        MAX('dim_datum'[Datum]),
+        -3,
+        MONTH
+    )
+)

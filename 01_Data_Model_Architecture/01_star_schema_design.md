@@ -61,7 +61,6 @@ erDiagram
         int MitarbeiterID PK
         string MitarbeiterName
         string Position
-        string Filiale
     }
 
     dim_datum {

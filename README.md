@@ -61,6 +61,12 @@ erDiagram
         string Altersgruppe
     }
 
+    dim_mitarbeiter {
+        int MitarbeiterID PK
+        string MitarbeiterName
+        string Position
+    }
+
     dim_datum {
         date Datum PK
         int Jahr

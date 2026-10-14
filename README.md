@@ -111,6 +111,19 @@ PowerBI-Supermarkt-Analytics/
 
 ---
 
+## 🔗 Offizielle Dokumentation & Referenzen
+
+* 📖 **Offizielle Microsoft DAX-Sprachreferenz (Deutsch):**  
+  👉 [https://learn.microsoft.com/de-de/dax/](https://learn.microsoft.com/de-de/dax/)
+* 🧭 **DAX.guide (Die weltweite Standard-Referenz von SQLBI):**  
+  👉 [https://dax.guide/](https://dax.guide/)
+* ⚡ **Microsoft Power Query M Sprachreferenz (Deutsch):**  
+  👉 [https://learn.microsoft.com/de-de/powerquery-m/](https://learn.microsoft.com/de-de/powerquery-m/)
+* 📊 **Microsoft Power BI Dokumentation:**  
+  👉 [https://learn.microsoft.com/de-de/power-bi/](https://learn.microsoft.com/de-de/power-bi/)
+
+---
+
 ## 💼 Bewerbung & Interview-Leitfaden (DACH-Markt)
 
 Dieses Projekt demonstriert im Vorstellungsgespräch:

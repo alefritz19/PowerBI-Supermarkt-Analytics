@@ -1,35 +1,117 @@
 // ================================================================================
 // 03_DAX_Measures_Library / 05_formatting_and_dynamic_titles.dax
-// Dynamische Beschriftungen, KPI-Formatierung & Trendpfeile
+// Modul 5: Filterkontext-Steuerung, Dynamische Titel & Visuelle Formatierung
+// ================================================================================
+// Enthält fortgeschrittene DAX-Muster zur gezielten Manipulation des Filterkontexts:
+// • CALCULATE mit ALL / ALLEXCEPT / KEEPFILTERS / REMOVEFILTERS
+// • Dynamische SVG- und Text-Indikatoren (▲ / ▼ / ►) nach IBCS-Standard
+// • Kontextsensitive Chart-Titel für ein interaktives Executive Reporting
 // ================================================================================
 
-// 1. Dynamischer Dashboard-Titel basierend auf gewählten Slicern
-Dynamischer_Berichtstitel = 
-VAR AusgewaehltesJahr = SELECTEDVALUE(dim_datum[Jahr], "Alle Jahre")
-VAR AusgewaehlteKategorie = SELECTEDVALUE(dim_produkte[KategorieName], "Gesamtes Sortiment")
-RETURN
-"Supermarkt Performance Report | " & AusgewaehlteKategorie & " (" & AusgewaehltesJahr & ")"
+// --------------------------------------------------------------------------------
+// 1. Filterkontext-Manipulation (Architectural Best Practices)
+// --------------------------------------------------------------------------------
 
-// 2. YoY Trend-Indikator mit Pfeilsymbol für KPI-Karten
-Umsatz_YoY_Indikator_Text = 
-VAR Growth = [Umsatz_YoY_Wachstum_Pct]
-RETURN
-SWITCH(
-    TRUE(),
-    ISBLANK(Growth), "-",
-    Growth > 0, "▲ +" & FORMAT(Growth, "0.0%"),
-    Growth < 0, "▼ " & FORMAT(Growth, "0.0%"),
-    "► 0.0%"
+// 1.1 Umsatz über ALLE Kategorien (ignoriert Kategorie-Filter, behält Datums- und Filialfilter)
+Umsatz_Alle_Kategorien = 
+CALCULATE(
+    [Total_Umsatz_Brutto],
+    ALL(vw_dim_produkte[KategorieName], vw_dim_produkte[KategorieID])
 )
 
-// 3. Farb-Hex-Code für bedingte Formatierung (Conditional Formatting)
-KPI_Farbe_Bedingt = 
-VAR Growth = [Umsatz_YoY_Wachstum_Pct]
+// 1.2 Umsatzanteil der ausgewählten Kategorie am Gesamtmarkt (%)
+Kategorie_Umsatz_Anteil_Pct = 
+DIVIDE(
+    [Total_Umsatz_Brutto],
+    [Umsatz_Alle_Kategorien],
+    0
+)
+
+// 1.3 Filialumsatz mit strikter Wahrung aller äußeren Filter (KEEPFILTERS)
+Umsatz_Nur_Hannover_Mitte = 
+CALCULATE(
+    [Total_Umsatz_Brutto],
+    KEEPFILTERS(vw_dim_filialen[Filialcode] = "F01")
+)
+
+// 1.4 Umsatz über das gesamte Filialnetzwerk (Hebt Filialfilter auf, behält Zeitfilter)
+Umsatz_Gesamtes_Filialnetz = 
+CALCULATE(
+    [Total_Umsatz_Brutto],
+    REMOVEFILTERS(vw_dim_filialen)
+)
+
+// 1.5 Relativer Marktanteil der Filiale am Gesamtumsatz der Kette (%)
+Filiale_Marktanteil_Kette_Pct = 
+DIVIDE(
+    [Total_Umsatz_Brutto],
+    [Umsatz_Gesamtes_Filialnetz],
+    0
+)
+
+
+// --------------------------------------------------------------------------------
+// 2. Dynamische Titel (Reagieren live auf User-Slicer)
+// --------------------------------------------------------------------------------
+
+// 2.1 Dynamischer Dashboard-Seitentitel
+Titel_Executive_Summary = 
+VAR GewaehlteFiliale = SELECTEDVALUE(vw_dim_filialen[FilialName], "Alle Filialen")
+VAR GewaehltesJahr   = SELECTEDVALUE(vw_dim_datum[Jahr], "Gesamtzeitraum")
+RETURN
+CONCATENATE(
+    "FrischMarkt Performance-Report | ",
+    CONCATENATE(GewaehlteFiliale, CONCATENATE(" (", CONCATENATE(FORMAT(GewaehltesJahr, ""), ")")))
+)
+
+// 2.2 Dynamischer KPI-Vergleichstitel
+Titel_Umsatz_Trend_Card = 
+VAR YoY = [Umsatz_YoY_Pct]
+VAR Pfeil = IF(YoY >= 0, "▲ +", "▼ ")
+RETURN
+CONCATENATE(
+    "Bruttoumsatz YoY: ",
+    CONCATENATE(Pfeil, FORMAT(YoY, "0.0%"))
+)
+
+
+// --------------------------------------------------------------------------------
+// 3. Visuelle Indikatoren & Bedingte Formatierung (IBCS)
+// --------------------------------------------------------------------------------
+
+// 3.1 YoY Trend-Symbol mit Farbcode
+Trend_Symbol_Umsatz_YoY = 
+VAR Pct = [Umsatz_YoY_Pct]
 RETURN
 SWITCH(
     TRUE(),
-    ISBLANK(Growth), "#707070",   // Grau
-    Growth >= 0.05,  "#008A00",   // Positiv Grün
-    Growth >= 0,     "#FFB900",   // Neutral Gelb
-    "#D83B01"                     // Negativ Rot
+    ISBLANK(Pct), "—",
+    Pct >= 0.05, "▲",      // Signifikanter Zuwachs (Grün)
+    Pct > -0.05, "►",      // Stabil ±5% (Grau)
+    "▼"                    // Rückgang (Rot)
+)
+
+// 3.2 Hex-Farbcode für KPI-Kartenhintergrund / Schrift
+Farbe_YoY_Trend_Hex = 
+VAR Pct = [Umsatz_YoY_Pct]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(Pct), "#757575",
+    Pct >= 0.02, "#2E7D32",     // Grün (Wachstum)
+    Pct > -0.02, "#546E7A",     // Neutral
+    "#C62828"                   // Rot (Rückgang)
+)
+
+// 3.3 Status Rohertragsmarge im Branchenvergleich (LEH Benchmark: 28%)
+Status_Margenqualitaet = 
+VAR Marge = [Rohertrag_Marge_Pct]
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(Marge), BLANK(),
+    Marge >= 0.35, "Hervorragend (> 35%)",
+    Marge >= 0.28, "Solide (28% - 35%)",
+    Marge >= 0.20, "Beobachten (20% - 28%)",
+    "Kritisch (< 20%)"
 )

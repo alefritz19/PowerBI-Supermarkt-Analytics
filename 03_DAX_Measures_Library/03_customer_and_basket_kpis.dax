@@ -1,38 +1,119 @@
 // ================================================================================
 // 03_DAX_Measures_Library / 03_customer_and_basket_kpis.dax
-// Kunden- & Warenkorb-Kennzahlen (Customer & Basket Analytics)
+// Modul 3: Kundenbindung, Kohorten & Warenkorbanalyse (Customer & Basket Analytics)
+// ================================================================================
+// Beantwortet zentrale Fragen des Marketing- und CRM-Leiters:
+// • Wie viele Kunden kaufen aktiv wieder? (Wiederkaufrate)
+// • Welcher Umsatzanteil entfällt auf Kundenkartenbesitzer?
+// • Welche Warengruppen landen gemeinsam im Korb? (Cross-Selling)
 // ================================================================================
 
-// 1. Anzahl aktiver Kunden im ausgewählten Zeitraum
+// 1. Gesamtzahl registrierter Kunden im Kundenstamm
+Anzahl_Kunden_Gesamt = 
+COUNTROWS(vw_dim_kunden)
+
+// 2. Aktive Kunden (mindestens ein Einkauf im gewählten Filterzeitraum)
 Aktive_Kunden = 
-DISTINCTCOUNT(fct_verkaeufe[KundeID])
+DISTINCTCOUNT(vw_fct_verkaeufe[KundeID])
 
-// 2. Durchschnittlicher Umsatz pro Kunde (Customer Average Spend)
-Umsatz_pro_Kunde = 
-DIVIDE([Total_Umsatz], [Aktive_Kunden], 0)
-
-// 3. Durchschnittliche Artikelanzahl pro Einkauf (Items per Basket)
-Artikel_pro_Bon = 
-DIVIDE([Total_Menge], [Anzahl_Bons], 0)
-
-// 4. Anzahl Einmalkäufer (One-Time Buyers)
-Einmalkaeufer = 
-COUNTROWS(
-    FILTER(
-        VALUES(fct_verkaeufe[KundeID]),
-        CALCULATE(DISTINCTCOUNT(fct_verkaeufe[EinkaufID])) = 1
+// 3. Durchdringungsquote Kundenkarte (% aller Einkäufe mit Kundenkarte)
+Kundenkarten_Quote_Bons_Pct = 
+VAR BonsMitKarte = 
+    CALCULATE(
+        [Anzahl_Bons],
+        NOT(ISBLANK(vw_fct_verkaeufe[KundeID]))
     )
+RETURN
+DIVIDE(
+    BonsMitKarte,
+    [Anzahl_Bons],
+    0
 )
 
-// 5. Anzahl Mehrfachkäufer / Stammkunden (Repeat Buyers)
-Mehrfachkaeufer = 
-COUNTROWS(
-    FILTER(
-        VALUES(fct_verkaeufe[KundeID]),
-        CALCULATE(DISTINCTCOUNT(fct_verkaeufe[EinkaufID])) > 1
+// 4. Umsatzanteil Kundenkarte (% des Bruttoumsatzes mit Kundenkarte)
+Kundenkarten_Umsatz_Anteil_Pct = 
+VAR UmsatzMitKarte = 
+    CALCULATE(
+        [Total_Umsatz_Brutto],
+        NOT(ISBLANK(vw_fct_verkaeufe[KundeID]))
     )
+RETURN
+DIVIDE(
+    UmsatzMitKarte,
+    [Total_Umsatz_Brutto],
+    0
 )
 
-// 6. Wiederkaufrate in Prozent (Repeat Purchase Rate %)
+// 5. Durchschnittlicher Umsatz pro aktivem Kunden (€ ARPU)
+Umsatz_Pro_Kunde = 
+DIVIDE(
+    CALCULATE([Total_Umsatz_Brutto], NOT(ISBLANK(vw_fct_verkaeufe[KundeID]))),
+    [Aktive_Kunden],
+    0
+)
+
+// 6. Einkaufsfrequenz (Einkäufe pro aktivem Kunden)
+Einkaufsfrequenz_Kunde = 
+DIVIDE(
+    CALCULATE([Anzahl_Bons], NOT(ISBLANK(vw_fct_verkaeufe[KundeID]))),
+    [Aktive_Kunden],
+    0
+)
+
+// 7. Mehrfachkäufer (Kunden mit mindestens 2 Einkäufen im Zeitraum)
+Mehrfachkaeufer_Anzahl = 
+VAR KundenMitEinkaeufen = 
+    FILTER(
+        VALUES(vw_dim_kunden[KundeID]),
+        CALCULATE(DISTINCTCOUNT(vw_fct_verkaeufe[BonID])) >= 2
+    )
+RETURN
+COUNTROWS(KundenMitEinkaeufen)
+
+// 8. Wiederkaufrate (% der aktiven Kunden mit >= 2 Einkäufen)
 Wiederkaufrate_Pct = 
-DIVIDE([Mehrfachkaeufer], [Aktive_Kunden], 0)
+DIVIDE(
+    [Mehrfachkaeufer_Anzahl],
+    [Aktive_Kunden],
+    0
+)
+
+// 9. Neukunden im aktuellen Zeitraum (Ersteinkauf fand im Filterzeitraum statt)
+Neukunden_Anzahl = 
+VAR MinDate = MIN(vw_dim_datum[Datum])
+VAR MaxDate = MAX(vw_dim_datum[Datum])
+RETURN
+COUNTROWS(
+    FILTER(
+        VALUES(vw_dim_kunden[KundeID]),
+        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) >= MinDate &&
+        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) <= MaxDate
+    )
+)
+
+// 10. Umsatz von Neukunden (€)
+Neukunden_Umsatz = 
+CALCULATE(
+    [Total_Umsatz_Brutto],
+    FILTER(
+        VALUES(vw_dim_kunden[KundeID]),
+        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) >= MIN(vw_dim_datum[Datum]) &&
+        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) <= MAX(vw_dim_datum[Datum])
+    )
+)
+
+// 11. Warenkorb-Cross-Selling: Anteil der Bons, die mindestens 2 verschiedene Kategorien enthalten
+Bons_Multi_Kategorie_Pct = 
+VAR MultiCatBons = 
+    COUNTROWS(
+        FILTER(
+            VALUES(vw_fct_verkaeufe[BonID]),
+            CALCULATE(DISTINCTCOUNT(vw_dim_produkte[KategorieID])) >= 2
+        )
+    )
+RETURN
+DIVIDE(
+    MultiCatBons,
+    [Anzahl_Bons],
+    0
+)

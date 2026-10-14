@@ -1,68 +1,120 @@
 // ================================================================================
 // 03_DAX_Measures_Library / 02_time_intelligence.dax
-// Zeitreihen- & Vorjahresvergleiche (Time Intelligence Measures)
-// Voraussetzung: Markierte Datumstabelle 'dim_datum'[Datum]
+// Modul 2: Zeitreihen- & Periodenvergleiche (Time Intelligence)
+// ================================================================================
+// Best Practice: Robuste Time Intelligence setzt eine als Datumstabelle markierte
+// Dimension (vw_dim_datum) mit ununterbrochenem Datumsbereich voraus.
 // ================================================================================
 
-// 1. Umsatz Vorjahr (Same Period Last Year / SPLY)
-Umsatz_Vorjahr = 
+// 1. Bruttoumsatz im Vorjahr (Same Period Last Year - SPLY)
+Umsatz_Vorjahr_SPLY = 
 CALCULATE(
-    [Total_Umsatz],
-    SAMEPERIODLASTYEAR('dim_datum'[Datum])
+    [Total_Umsatz_Brutto],
+    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
 )
 
-// 2. Year-over-Year (YoY) Umsatzwachstum Absolut
-Umsatz_YoY_Wachstum_Absolut = 
-IF(
-    NOT ISBLANK([Umsatz_Vorjahr]),
-    [Total_Umsatz] - [Umsatz_Vorjahr]
+// 2. Rohertrag im Vorjahr (SPLY)
+Rohertrag_Vorjahr_SPLY = 
+CALCULATE(
+    [Total_Rohertrag],
+    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
 )
 
-// 3. Year-over-Year (YoY) Umsatzwachstum in Prozent
-Umsatz_YoY_Wachstum_Pct = 
+// 3. Absolute Umsatzveränderung zum Vorjahr (€ YoY)
+Umsatz_YoY_Diff = 
+[Total_Umsatz_Brutto] - [Umsatz_Vorjahr_SPLY]
+
+// 4. Prozentuales Vorjahreswachstum (% YoY Growth)
+Umsatz_YoY_Pct = 
 DIVIDE(
-    [Umsatz_YoY_Wachstum_Absolut],
-    [Umsatz_Vorjahr],
-    BLANK()
+    [Umsatz_YoY_Diff],
+    [Umsatz_Vorjahr_SPLY],
+    0
 )
 
-// 4. Kumulierter Jahresumsatz (Year-to-Date / YTD)
+// 5. Absolute Rohertragsveränderung zum Vorjahr (€ YoY)
+Rohertrag_YoY_Diff = 
+[Total_Rohertrag] - [Rohertrag_Vorjahr_SPLY]
+
+// 6. Prozentuales Rohertragswachstum zum Vorjahr (% YoY)
+Rohertrag_YoY_Pct = 
+DIVIDE(
+    [Rohertrag_YoY_Diff],
+    [Rohertrag_Vorjahr_SPLY],
+    0
+)
+
+// 7. Kumulierter Jahresumsatz (Year-to-Date - YTD)
 Umsatz_YTD = 
 TOTALYTD(
-    [Total_Umsatz],
-    'dim_datum'[Datum]
+    [Total_Umsatz_Brutto],
+    vw_dim_datum[Datum]
 )
 
-// 5. Kumulierter Jahresumsatz des Vorjahres (YTD Prior Year)
+// 8. Kumulierter Jahresumsatz des Vorjahres (YTD SPLY)
 Umsatz_YTD_Vorjahr = 
-TOTALYTD(
-    [Umsatz_Vorjahr],
-    'dim_datum'[Datum]
+CALCULATE(
+    [Umsatz_YTD],
+    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
 )
 
-// 6. Umsatz Vormonat (Month-over-Month / MoM)
+// 9. YTD-Wachstum zum Vorjahr (% YoY YTD)
+Umsatz_YTD_YoY_Pct = 
+DIVIDE(
+    [Umsatz_YTD] - [Umsatz_YTD_Vorjahr],
+    [Umsatz_YTD_Vorjahr],
+    0
+)
+
+// 10. Kumulierter Quartalsumsatz (Quarter-to-Date - QTD)
+Umsatz_QTD = 
+TOTALQTD(
+    [Total_Umsatz_Brutto],
+    vw_dim_datum[Datum]
+)
+
+// 11. Kumulierter Monatsumsatz (Month-to-Date - MTD)
+Umsatz_MTD = 
+TOTALMTD(
+    [Total_Umsatz_Brutto],
+    vw_dim_datum[Datum]
+)
+
+// 12. Vormonatsumsatz (Month-over-Month Basis)
 Umsatz_Vormonat = 
 CALCULATE(
-    [Total_Umsatz],
-    DATEADD('dim_datum'[Datum], -1, MONTH)
+    [Total_Umsatz_Brutto],
+    DATEADD(vw_dim_datum[Datum], -1, MONTH)
 )
 
-// 7. Month-over-Month (MoM) Umsatzwachstum in Prozent
-Umsatz_MoM_Wachstum_Pct = 
+// 13. Monatswachstum (% MoM)
+Umsatz_MoM_Pct = 
 DIVIDE(
-    [Total_Umsatz] - [Umsatz_Vormonat],
+    [Total_Umsatz_Brutto] - [Umsatz_Vormonat],
     [Umsatz_Vormonat],
-    BLANK()
+    0
 )
 
-// 8. Gleitender 3-Monats-Umsatz (Rolling 3-Month Moving Average)
-Umsatz_Rolling_3M_Avg = 
+// 14. Gleitender 3-Monats-Umsatz (Rolling 3 Months Revenue)
+Umsatz_Rolling_3M = 
 CALCULATE(
-    DIVIDE([Total_Umsatz], 3),
+    [Total_Umsatz_Brutto],
     DATESINPERIOD(
-        'dim_datum'[Datum],
-        MAX('dim_datum'[Datum]),
+        vw_dim_datum[Datum],
+        MAX(vw_dim_datum[Datum]),
         -3,
+        MONTH
+    )
+)
+
+// 15. Gleitender 12-Monats-Umsatz (Moving Annual Total - MAT)
+Umsatz_MAT_12M = 
+CALCULATE(
+    [Total_Umsatz_Brutto],
+    DATESINPERIOD(
+        vw_dim_datum[Datum],
+        MAX(vw_dim_datum[Datum]),
+        -12,
         MONTH
     )
 )

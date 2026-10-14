@@ -1,62 +1,130 @@
 // ================================================================================
 // 03_DAX_Measures_Library / 04_advanced_abc_ranking.dax
-// Sortimentsanalyse, dynamische Produkt-Rangfolge & ABC-Pareto in DAX
+// Modul 4: Dynamische Sortimentsanalyse & ABC-Pareto-Klassifizierung
+// ================================================================================
+// Beantwortet Kernfragen des Category Managements:
+// • Welche 20% der Artikel generieren 80% des Rohertrags? (Pareto-Prinzip)
+// • Welche Produkte binden Kapital ohne Deckungsbeitrag? (C-Sortiment)
+// • Dynamische Anpassung an Slicer (Filiale, Zeitraum, Kategorie) via ALLSELECTED.
 // ================================================================================
 
-// 1. Relativer Umsatzanteil des gewählten Produkts am Gesamtkatalog
+// 1. Relativer Umsatzanteil des gewählten Produkts am aktuellen Kontext (%)
 Umsatz_Anteil_Gesamt_Pct = 
 DIVIDE(
-    [Total_Umsatz],
-    CALCULATE([Total_Umsatz], ALLSELECTED(dim_produkte)),
+    [Total_Umsatz_Brutto],
+    CALCULATE([Total_Umsatz_Brutto], ALLSELECTED(vw_dim_produkte)),
     0
 )
 
-// 2. Dynamischer Produktrang nach Umsatz
-Produkt_Umsatz_Rang = 
+// 2. Relativer Rohertragsanteil des Produkts (%)
+Rohertrag_Anteil_Gesamt_Pct = 
+DIVIDE(
+    [Total_Rohertrag],
+    CALCULATE([Total_Rohertrag], ALLSELECTED(vw_dim_produkte)),
+    0
+)
+
+// 3. Dynamischer Produktrang nach Bruttoumsatz
+Produkt_Rang_Umsatz = 
 IF(
-    ISINSCOPE(dim_produkte[ProduktName]),
+    ISINSCOPE(vw_dim_produkte[ProduktName]),
     RANKX(
-        ALLSELECTED(dim_produkte[ProduktName]),
-        [Total_Umsatz],
+        ALLSELECTED(vw_dim_produkte[ProduktName]),
+        [Total_Umsatz_Brutto],
         ,
         DESC,
         Dense
     )
 )
 
-// 3. Kumulierter Umsatz über die Rangfolge (Basis für Pareto-Kurve)
+// 4. Dynamischer Produktrang nach Rohertrag (Deckungsbeitrag)
+Produkt_Rang_Rohertrag = 
+IF(
+    ISINSCOPE(vw_dim_produkte[ProduktName]),
+    RANKX(
+        ALLSELECTED(vw_dim_produkte[ProduktName]),
+        [Total_Rohertrag],
+        ,
+        DESC,
+        Dense
+    )
+)
+
+// 5. Kumulierter Umsatz über die Rangfolge (Basis für Pareto-Kurve)
 Umsatz_Kumuliert = 
-VAR CurrentProductRevenue = [Total_Umsatz]
+VAR CurrentRevenue = [Total_Umsatz_Brutto]
 VAR RankedProducts = 
     ADDCOLUMNS(
-        ALLSELECTED(dim_produkte[ProduktName]),
-        "@Revenue", [Total_Umsatz]
+        ALLSELECTED(vw_dim_produkte[ProduktName]),
+        "@Revenue", [Total_Umsatz_Brutto]
     )
 RETURN
 IF(
-    ISINSCOPE(dim_produkte[ProduktName]),
+    ISINSCOPE(vw_dim_produkte[ProduktName]),
     SUMX(
-        FILTER(RankedProducts, [@Revenue] >= CurrentProductRevenue),
+        FILTER(RankedProducts, [@Revenue] >= CurrentRevenue),
         [@Revenue]
     )
 )
 
-// 4. Kumulierter Prozentanteil an Gesamtsumme
-Kumulierter_Anteil_Pct = 
+// 6. Kumulierter Prozentanteil am Gesamtumsatz
+Kumulierter_Umsatz_Anteil_Pct = 
 DIVIDE(
     [Umsatz_Kumuliert],
-    CALCULATE([Total_Umsatz], ALLSELECTED(dim_produkte)),
+    CALCULATE([Total_Umsatz_Brutto], ALLSELECTED(vw_dim_produkte)),
     0
 )
 
-// 5. Dynamische ABC-Klassifizierung nach Pareto
-ABC_Klassifizierung = 
-VAR Pct = [Kumulierter_Anteil_Pct]
+// 7. Dynamische ABC-Klassifizierung nach Umsatz
+// A = Top 80% des Umsatzes (Renner)
+// B = Nächste 15% des Umsatzes (Mittelfeld)
+// C = Letzte 5% des Umsatzes (Penner / Long-Tail)
+ABC_Klasse_Umsatz = 
+VAR Pct = [Kumulierter_Umsatz_Anteil_Pct]
 RETURN
 SWITCH(
     TRUE(),
-    ISBLANK([Total_Umsatz]), BLANK(),
-    Pct <= 0.80, "A-Klasse (Kernsortiment 80%)",
-    Pct <= 0.95, "B-Klasse (Mittleres Sortiment 15%)",
-    "C-Klasse (Nischensortiment 5%)"
+    ISBLANK([Total_Umsatz_Brutto]), BLANK(),
+    Pct <= 0.80, "A-Artikel (Top 80%)",
+    Pct <= 0.95, "B-Artikel (Mittelfeld 15%)",
+    "C-Artikel (Nische 5%)"
+)
+
+// 8. Dynamische ABC-Klassifizierung nach Rohertrag
+// Identifiziert Produkte, die zwar viel Umsatz machen, aber kaum Deckungsbeitrag liefern!
+ABC_Klasse_Rohertrag = 
+VAR CurrentMargin = [Total_Rohertrag]
+VAR RankedMargin = 
+    ADDCOLUMNS(
+        ALLSELECTED(vw_dim_produkte[ProduktName]),
+        "@Margin", [Total_Rohertrag]
+    )
+VAR KumuliertMargin = 
+    SUMX(
+        FILTER(RankedMargin, [@Margin] >= CurrentMargin),
+        [@Margin]
+    )
+VAR Pct = 
+    DIVIDE(
+        KumuliertMargin,
+        CALCULATE([Total_Rohertrag], ALLSELECTED(vw_dim_produkte)),
+        0
+    )
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK([Total_Rohertrag]), BLANK(),
+    Pct <= 0.80, "A-Ertrag (Top 80%)",
+    Pct <= 0.95, "B-Ertrag (Mittelfeld 15%)",
+    "C-Ertrag (Schwache Spanne 5%)"
+)
+
+// 9. Hex-Farbcode für ABC-Visuals (Bedingte Formatierung in Tabellen und Charts)
+ABC_Farbe_Hex = 
+SWITCH(
+    [ABC_Klasse_Umsatz],
+    "A-Artikel (Top 80%)", "#2E7D32",    // Dunkelgrün
+    "B-Artikel (Mittelfeld 15%)", "#F57C00", // Bernstein/Orange
+    "C-Artikel (Nische 5%)", "#C62828",     // Dunkelrot
+    "#757575"                               // Grau
 )

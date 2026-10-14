@@ -1,32 +1,91 @@
 // ================================================================================
 // 03_DAX_Measures_Library / 01_base_measures.dax
-// Grundlegende Finanz- und Volumen-Kennzahlen (Base Measures)
+// Modul 1: Grundlegende Unternehmens-KPIs (FrischMarkt GmbH)
+// ================================================================================
+// Best Practice: Explizite Measures anstelle impliziter Standard-Aggregationen.
+// Alle Kennzahlen referenzieren ausschließlich dwh.vw_fct_verkaeufe / dwh.vw_fct_abschreibungen.
 // ================================================================================
 
-// 1. Gesamtumsatz (Total Revenue)
-Total_Umsatz = 
-SUM(fct_verkaeufe[Gesamtbetrag])
+// 1. Bruttoumsatz (€)
+Total_Umsatz_Brutto = 
+SUM(vw_fct_verkaeufe[UmsatzBrutto])
 
-// 2. Gesamte abgesetzte Menge (Units Sold)
-Total_Menge = 
-SUM(fct_verkaeufe[Menge])
+// 2. Nettoumsatz (€ vor Steuern)
+Total_Umsatz_Netto = 
+SUM(vw_fct_verkaeufe[UmsatzNetto])
 
-// 3. Gesamte Herstellkosten (Cost of Goods Sold / COGS)
-Total_Herstellkosten = 
-SUM(fct_verkaeufe[Herstellkosten])
+// 3. Umsatzsteuer (€)
+Total_MwSt = 
+SUM(vw_fct_verkaeufe[MwStBetrag])
 
-// 4. Absoluter Rohertrag / Deckungsbeitrag (Gross Profit)
+// 4. Wareneinsatz Netto (€)
+Total_Wareneinsatz = 
+SUM(vw_fct_verkaeufe[WareneinsatzNetto])
+
+// 5. Deckungsbeitrag / Rohertrag (€)
 Total_Rohertrag = 
-[Total_Umsatz] - [Total_Herstellkosten]
+[Total_Umsatz_Netto] - [Total_Wareneinsatz]
 
-// 5. Rohertragsmarge in Prozent (Gross Margin %)
-Rohertragsmarge_Pct = 
-DIVIDE([Total_Rohertrag], [Total_Umsatz], 0)
+// 6. Rohertragsmarge (% vom Nettoumsatz)
+Rohertrag_Marge_Pct = 
+DIVIDE(
+    [Total_Rohertrag],
+    [Total_Umsatz_Netto],
+    0
+)
 
-// 6. Anzahl getätigter Einkäufe / Kassenbons (Transactions / Orders)
+// 7. Verkaufte Artikelmenge (Stück)
+Total_Menge = 
+SUM(vw_fct_verkaeufe[Menge])
+
+// 8. Anzahl Kassenbons (Transaktionen)
 Anzahl_Bons = 
-DISTINCTCOUNT(fct_verkaeufe[EinkaufID])
+DISTINCTCOUNT(vw_fct_verkaeufe[BonID])
 
-// 7. Durchschnittlicher Bonwert (Average Order Value / AOV)
-Durchschnittsbon_AOV = 
-DIVIDE([Total_Umsatz], [Anzahl_Bons], 0)
+// 9. Durchschnittlicher Bonwert brutto (€ pro Bon / Average Basket Value)
+Durchschnitt_Bonwert = 
+DIVIDE(
+    [Total_Umsatz_Brutto],
+    [Anzahl_Bons],
+    0
+)
+
+// 10. Artikel pro Kassenbon (Units per Transaction - UPT)
+Artikel_Pro_Bon = 
+DIVIDE(
+    [Total_Menge],
+    [Anzahl_Bons],
+    0
+)
+
+// 11. Durchschnittlicher Verkaufspreis je Einheit (€)
+Durchschnittspreis_Pro_Einheit = 
+DIVIDE(
+    [Total_Umsatz_Brutto],
+    [Total_Menge],
+    0
+)
+
+// 12. Summe gewährter Aktionsrabatte brutto (€)
+Total_Rabatt_Brutto = 
+SUM(vw_fct_verkaeufe[RabattBetrag])
+
+// 13. Rabattquote (% am potenziellen Bruttoumsatz)
+Rabattquote_Pct = 
+DIVIDE(
+    [Total_Rabatt_Brutto],
+    [Total_Umsatz_Brutto] + [Total_Rabatt_Brutto],
+    0
+)
+
+// 14. Gesamter Warenverlust durch Abschreibungen (€ netto)
+Total_Abschreibungen_Netto = 
+SUM(vw_fct_abschreibungen[VerlustNettoEUR])
+
+// 15. Abschreibungsquote (% bezogen auf den Wareneinsatz)
+Abschreibungsquote_Pct = 
+DIVIDE(
+    [Total_Abschreibungen_Netto],
+    [Total_Wareneinsatz],
+    0
+)

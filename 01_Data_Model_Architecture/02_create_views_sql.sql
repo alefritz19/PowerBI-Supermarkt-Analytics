@@ -1,81 +1,160 @@
 -- ================================================================================
 -- 01_Data_Model_Architecture / 02_create_views_sql.sql
--- Optimierte Datenbank-Views für den Power BI Datenimport
--- Zieldatenbank: SupermarktV2 (Microsoft SQL Server)
+-- Optimierte Datenbank-Views & Fakten für den Power BI Datenimport
+-- Zieldatenbank: SupermarktDWH (Microsoft SQL Server 2022)
+-- Fiktives Unternehmen: FrischMarkt GmbH
 -- ================================================================================
--- BEST PRACTICE FÜR POWER BI:
--- Tabellen sollten niemals direkt roh importiert werden.
--- Views abstrahieren die physische Datenbankstruktur, benennen Spalten
--- fachlich sauber und führen notwendige Vorberechnungen direkt in SQL durch.
+-- BEST PRACTICE FÜR ENTERPRISE POWER BI:
+-- Tabellen sollten niemals direkt als unstrukturierte Rohdaten importiert werden.
+-- Views und Dimensionen im 'dwh'-Schema abstrahieren die physische Datenbank,
+-- benennen Spalten nach Standard-Business-Semantik und ermöglichen 
+-- performante 1:n-Sternschema-Beziehungen mit einfacher Filterrichtung.
 -- ================================================================================
 
-USE SupermarktV2;
+USE SupermarktDWH;
 GO
 
 -- --------------------------------------------------------------------------------
--- 1. Produktdimension (Denormalisiert mit Kategorie)
+-- 1. Produktdimension (Denormalisiert mit Kategorien, Preisen und Spannen)
 -- --------------------------------------------------------------------------------
-CREATE OR ALTER VIEW dbo.vw_dim_produkte AS
+CREATE OR ALTER VIEW dwh.vw_dim_produkte AS
 SELECT 
     p.ProduktID,
+    p.EAN,
     p.ProduktName,
+    k.KategorieID,
     k.KategorieName,
-    p.Preis AS StandardPreis,
-    p.Lagerbestand,
-    -- Kalkulatorische Standardkosten (z.B. 65% des Verkaufspreises für Margenanalyse)
-    ROUND(p.Preis * 0.65, 2) AS StandardHerstellkosten
+    k.Warenbereich,
+    k.IstFrischware,
+    p.Marke,
+    p.IstEigenmarke,
+    p.Saisonprofil,
+    p.MwStSatz,
+    ph.VK_Brutto AS StandardVerkaufspreis,
+    ph.EK_Netto  AS StandardHerstellkosten,
+    ROUND((ph.VK_Brutto / (1 + p.MwStSatz)) - ph.EK_Netto, 2) AS StandardDeckungsbeitragNetto
 FROM dbo.Produkte p
-INNER JOIN dbo.Kategorien k ON p.KategorieID = k.KategorieID;
+INNER JOIN dbo.Kategorien k ON p.KategorieID = k.KategorieID
+INNER JOIN dbo.Preishistorie ph 
+    ON ph.ProduktID = p.ProduktID 
+   AND CAST('2026-09-30' AS DATE) BETWEEN ph.GueltigAb AND ph.GueltigBis;
 GO
 
 -- --------------------------------------------------------------------------------
--- 2. Kundendimension (Vollständiger Name, Stadt, Altersgruppe)
+-- 2. Kundendimension (Kundenkarte, Segmentierung, Altersgruppen)
 -- --------------------------------------------------------------------------------
-CREATE OR ALTER VIEW dbo.vw_dim_kunden AS
+CREATE OR ALTER VIEW dwh.vw_dim_kunden AS
 SELECT 
     k.KundeID,
-    k.Vorname + ' ' + k.Nachname AS KundenName,
-    k.Stadt,
+    k.Kundennummer,
+    k.Anrede,
+    CONCAT(k.Vorname, ' ', k.Nachname) AS KundenName,
+    k.Geschlecht,
     k.Geburtsdatum,
-    DATEDIFF(year, k.Geburtsdatum, GETDATE()) AS AlterJahre,
+    DATEDIFF(YEAR, k.Geburtsdatum, '2026-09-30') AS AlterJahre,
     CASE 
-        WHEN DATEDIFF(year, k.Geburtsdatum, GETDATE()) < 30 THEN '18-29 Jahre'
-        WHEN DATEDIFF(year, k.Geburtsdatum, GETDATE()) BETWEEN 30 AND 49 THEN '30-49 Jahre'
-        WHEN DATEDIFF(year, k.Geburtsdatum, GETDATE()) BETWEEN 50 AND 64 THEN '50-64 Jahre'
+        WHEN DATEDIFF(YEAR, k.Geburtsdatum, '2026-09-30') < 30 THEN '18-29 Jahre'
+        WHEN DATEDIFF(YEAR, k.Geburtsdatum, '2026-09-30') BETWEEN 30 AND 49 THEN '30-49 Jahre'
+        WHEN DATEDIFF(YEAR, k.Geburtsdatum, '2026-09-30') BETWEEN 50 AND 64 THEN '50-64 Jahre'
         ELSE '65+ Jahre'
-    END AS Altersgruppe
+    END AS Altersgruppe,
+    k.PLZ,
+    k.Stadt,
+    k.NewsletterOptIn,
+    k.Registrierungsdatum,
+    k.StammfilialeID
 FROM dbo.Kunden k;
 GO
 
 -- --------------------------------------------------------------------------------
--- 3. Mitarbeiterdimension (Filialmitarbeiter / Kassenpersonal)
+-- 3. Filialdimension (Standort, Region, Verkaufsfläche)
 -- --------------------------------------------------------------------------------
-CREATE OR ALTER VIEW dbo.vw_dim_mitarbeiter AS
+CREATE OR ALTER VIEW dwh.vw_dim_filialen AS
+SELECT 
+    FilialeID,
+    Filialcode,
+    FilialName,
+    Strasse,
+    PLZ,
+    Stadt,
+    Bundesland,
+    BundeslandKz,
+    Region,
+    VerkaufsflaecheQM,
+    Eroeffnungsdatum
+FROM dbo.Filialen;
+GO
+
+-- --------------------------------------------------------------------------------
+-- 4. Mitarbeiterdimension (Filialmitarbeiter / Kassenpersonal)
+-- --------------------------------------------------------------------------------
+CREATE OR ALTER VIEW dwh.vw_dim_mitarbeiter AS
 SELECT 
     m.MitarbeiterID,
-    m.Vorname + ' ' + m.Nachname AS MitarbeiterName,
-    m.Position
+    m.Personalnummer,
+    CONCAT(m.Vorname, ' ', m.Nachname) AS MitarbeiterName,
+    m.Position,
+    m.FilialeID,
+    m.Eintrittsdatum
 FROM dbo.Mitarbeiter m;
 GO
 
 -- --------------------------------------------------------------------------------
--- 4. Faktentabelle Verkäufe (Transaktionen & Bon-Positionen)
+-- 5. Aktionsdimension (Marketingkampagnen & Rabatte)
 -- --------------------------------------------------------------------------------
-CREATE OR ALTER VIEW dbo.vw_fct_verkaeufe AS
+CREATE OR ALTER VIEW dwh.vw_dim_aktionen AS
 SELECT 
-    pos.PositionID,
-    e.EinkaufID,
-    e.EinkaufDatum,
-    e.KundeID,
-    e.MitarbeiterID,
-    pos.ProduktID,
-    pos.Menge,
-    pos.Einzelpreis,
-    ROUND(pos.Menge * pos.Einzelpreis, 2) AS Gesamtbetrag,
-    -- Kalkulierte Kosten und Rohertrag auf Zeilenebene
-    ROUND(pos.Menge * (p.Preis * 0.65), 2) AS Herstellkosten,
-    ROUND((pos.Menge * pos.Einzelpreis) - (pos.Menge * (p.Preis * 0.65)), 2) AS Rohertrag
-FROM dbo.Einkauf_Positionen pos
-INNER JOIN dbo.Einkaeufe e ON pos.EinkaufID = e.EinkaufID
-INNER JOIN dbo.Produkte p ON pos.ProduktID = p.ProduktID;
+    AktionID,
+    AktionName,
+    Aktionstyp,
+    KategorieID,
+    RabattProzent,
+    StartDatum,
+    EndDatum
+FROM dbo.Aktionen;
+GO
+
+-- --------------------------------------------------------------------------------
+-- 6. Faktentabelle Verkäufe (Zentrale Fakten auf Bonpositions-Ebene)
+-- --------------------------------------------------------------------------------
+CREATE OR ALTER VIEW dwh.vw_fct_verkaeufe AS
+SELECT 
+    f.PositionID,
+    f.BonID,
+    f.DatumKey,
+    f.BonDatum,
+    f.BonUhrzeit,
+    f.FilialeID,
+    f.KundeID,
+    f.MitarbeiterID,
+    f.ProduktID,
+    f.AktionID,
+    f.Menge,
+    f.Einzelpreis,
+    f.RabattBetrag,
+    f.UmsatzBrutto,
+    f.MwStBetrag,
+    f.UmsatzNetto,
+    f.WareneinsatzNetto,
+    f.Deckungsbeitrag AS Rohertrag,
+    f.MargeProzent,
+    f.Zahlungsart
+FROM dwh.fct_verkaeufe f;
+GO
+
+-- --------------------------------------------------------------------------------
+-- 7. Faktentabelle Warenverlust & Abschreibungen (Shrinkage / Waste)
+-- --------------------------------------------------------------------------------
+CREATE OR ALTER VIEW dwh.vw_fct_abschreibungen AS
+SELECT 
+    a.AbschreibungID,
+    CONVERT(INT, CONVERT(CHAR(8), a.Datum, 112)) AS DatumKey,
+    a.Datum,
+    a.FilialeID,
+    a.ProduktID,
+    a.Menge,
+    a.Grund,
+    a.EK_Netto,
+    a.GesamtverlustNetto AS VerlustNettoEUR
+FROM dbo.Abschreibungen a;
 GO

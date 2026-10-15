@@ -24,22 +24,15 @@ Das Projekt demonstriert den durchgängigen Workflow eines modernen **BI Analyst
 
 ## 🖥️ Dashboard-Vorschau & Semantisches Datenmodell
 
-Hier sind die zentralen visuellen Berichtsseiten des **FrischMarkt Executive Dashboards** in Power BI Desktop:
+Hier sind die zentralen visuellen Komponenten des **FrischMarkt Executive Dashboards** in Power BI Desktop:
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ Seite 1: Executive KPI Summary (Umsatz, Rohertrag, Vorjahresvergleich YoY & Trends)   │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Seite 2: Category & Sortiment (Pareto ABC-Klassifizierung nach Umsatz & Marge)        │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Seite 3: Filial-Benchmarking (Flächenproduktivität, Umsatz je m² & Standortvergleich)  │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Seite 4: Kundenkarten- & Warenkorbanalyse (Loyalität, UPT & Bonwert-Verteilung)        │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+### 1. Executive Management Cockpit (Page 1)
+![FrischMarkt Executive Overview Dashboard](04_Report_Design_and_Mockups/01_executive_overview_dashboard.png)
 
-> 📷 **Dashboard Screenshots:**
-> Die Berichtsseiten wurden nach den Vorgaben der Spezifikation ([`dashboard_layout_specification.md`](04_Report_Design_and_Mockups/dashboard_layout_specification.md)) und dem Farbschema ([`corporate_theme.json`](04_Report_Design_and_Mockups/corporate_theme.json)) gestaltet.
+### 2. Semantisches Sternschema-Datenmodell (Kimball Galaxy Schema)
+![FrischMarkt Star Schema Data Model](04_Report_Design_and_Mockups/02_star_schema_data_model.png)
+
+> Die Berichtsseiten wurden nach den Vorgaben der Spezifikation ([`dashboard_layout_specification.md`](04_Report_Design_and_Mockups/dashboard_layout_specification.md)) und dem Farbschema ([`corporate_theme.json`](04_Report_Design_and_Mockups/corporate_theme.json)) umgesetzt.
 
 ---
 

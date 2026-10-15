@@ -7,6 +7,9 @@
 // ================================================================================
 
 // 1. Bruttoumsatz (€)
+Total_Umsatz = 
+SUM(vw_fct_verkaeufe[UmsatzBrutto])
+
 Total_Umsatz_Brutto = 
 SUM(vw_fct_verkaeufe[UmsatzBrutto])
 
@@ -26,7 +29,14 @@ SUM(vw_fct_verkaeufe[WareneinsatzNetto])
 Total_Rohertrag = 
 [Total_Umsatz_Netto] - [Total_Wareneinsatz]
 
-// 6. Rohertragsmarge (% vom Nettoumsatz)
+// 6. Rohertragsmarge (% vom Bruttoumsatz / Nettoumsatz)
+Rohertragsmarge_Pct = 
+DIVIDE(
+    [Total_Rohertrag],
+    [Total_Umsatz],
+    0
+)
+
 Rohertrag_Marge_Pct = 
 DIVIDE(
     [Total_Rohertrag],
@@ -42,7 +52,14 @@ SUM(vw_fct_verkaeufe[Menge])
 Anzahl_Bons = 
 DISTINCTCOUNT(vw_fct_verkaeufe[BonID])
 
-// 9. Durchschnittlicher Bonwert brutto (€ pro Bon / Average Basket Value)
+// 9. Durchschnittlicher Bonwert brutto (€ pro Bon / Average Basket Value AOV)
+Durchschnittsbon_AOV = 
+DIVIDE(
+    [Total_Umsatz],
+    [Anzahl_Bons],
+    0
+)
+
 Durchschnitt_Bonwert = 
 DIVIDE(
     [Total_Umsatz_Brutto],
@@ -79,6 +96,9 @@ DIVIDE(
 )
 
 // 14. Gesamter Warenverlust durch Abschreibungen (€ netto)
+Total_Abschreibungen = 
+SUM(vw_fct_abschreibungen[VerlustNettoEUR])
+
 Total_Abschreibungen_Netto = 
 SUM(vw_fct_abschreibungen[VerlustNettoEUR])
 

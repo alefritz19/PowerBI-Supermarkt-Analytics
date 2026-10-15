@@ -7,6 +7,12 @@
 // ================================================================================
 
 // 1. Bruttoumsatz im Vorjahr (Same Period Last Year - SPLY)
+Umsatz_Vorjahr = 
+CALCULATE(
+    [Total_Umsatz],
+    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
+)
+
 Umsatz_Vorjahr_SPLY = 
 CALCULATE(
     [Total_Umsatz_Brutto],

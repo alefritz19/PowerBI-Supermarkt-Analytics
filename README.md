@@ -32,6 +32,8 @@ Hier sind die zentralen visuellen Komponenten des **FrischMarkt Executive Dashbo
 ### 2. Semantisches Sternschema-Datenmodell (Kimball Galaxy Schema)
 ![FrischMarkt Star Schema Data Model](04_Report_Design_and_Mockups/02_star_schema_data_model.png)
 
+> 📄 **Interaktiver PDF-Export:** Der Managementbericht steht als vollständiges Dokument zum Download bereit: [`FrischMarkt_Executive_Overview_Report.pdf`](04_Report_Design_and_Mockups/FrischMarkt_Executive_Overview_Report.pdf)
+> 
 > Die Berichtsseiten wurden nach den Vorgaben der Spezifikation ([`dashboard_layout_specification.md`](04_Report_Design_and_Mockups/dashboard_layout_specification.md)) und dem Farbschema ([`corporate_theme.json`](04_Report_Design_and_Mockups/corporate_theme.json)) umgesetzt.
 
 ---

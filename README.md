@@ -164,28 +164,31 @@ erDiagram
 
 ```text
 PowerBI-Supermarkt-Analytics/
-├── .gitattributes                                     # GitHub Linguist Overrides (DAX/TSQL Erkennung)
-├── README.md                                          # Projektübersicht, Insights & Architektur
-├── 00_anleitung_die_3_ebenen_in_power_bi.md           # Architektur-Leitfaden: Das 3-Ebenen-Prinzip
+├── .gitattributes                           # GitHub Linguist Overrides (DAX/TSQL Erkennung)
+├── README.md                                # Projektübersicht, Insights & Architektur
+├── 00_anleitung_die_3_ebenen_in_power_bi.md # Architektur-Leitfaden: Das 3-Ebenen-Prinzip
 │
 ├── 01_Data_Model_Architecture/
-│   ├── 01_star_schema_design.md                       # Modellierungsregeln & Kardinalitäten
-│   └── 02_create_views_sql.sql                        # SQL-Views für SupermarktDWH (SQL Server 2022)
+│   ├── 01_star_schema_design.md             # Modellierungsregeln & Kardinalitäten
+│   └── 02_create_views_sql.sql              # SQL-Views für SupermarktDWH (SQL Server 2022)
 │
 ├── 02_Power_Query_M_Scripts/
-│   ├── fx_DateTable_German.m                          # Dynamische M-Kalenderfunktion (DIN/ISO)
-│   └── transform_supermarkt_data.m                    # M-Abfragen für Tabellenübernahme
+│   ├── fx_DateTable_German.m                # Dynamische M-Kalenderfunktion (DIN/ISO)
+│   └── transform_supermarkt_data.m          # M-Abfragen für Tabellenübernahme
 │
 ├── 03_DAX_Measures_Library/
-│   ├── 01_base_measures.dax                           # Umsatz, Rohertrag, Marge %, Bonwert (AOV)
-│   ├── 02_time_intelligence.dax                      # YoY, MoM, YTD, SPLY, Rolling 3M & 12M MAT
-│   ├── 03_customer_and_basket_kpis.dax                # Aktive Kunden, Wiederkaufrate, Basket Size
-│   ├── 04_advanced_abc_ranking.dax                    # Dynamisches Pareto-Ranking & ABC-Klassen
-│   └── 05_formatting_and_dynamic_titles.dax           # Filterkontext-Manipulation (ALL, KEEPFILTERS), IBCS
+│   ├── 01_base_measures.dax                 # Umsatz, Rohertrag, Marge %, Bonwert (AOV)
+│   ├── 02_time_intelligence.dax             # YoY, MoM, YTD, SPLY, Rolling 3M & 12M MAT
+│   ├── 03_customer_and_basket_kpis.dax      # Aktive Kunden, Wiederkaufrate, Basket Size
+│   ├── 04_advanced_abc_ranking.dax          # Dynamisches Pareto-Ranking & ABC-Klassen
+│   └── 05_formatting_and_dynamic_titles.dax # Filterkontext (ALL, KEEPFILTERS), KPI-Icons
 │
 └── 04_Report_Design_and_Mockups/
-    ├── dashboard_layout_specification.md              # 4-Seiten Dashboard Grid & Visual-Anordnung
-    └── corporate_theme.json                           # Importierbares Farb- & Schrift-Theme (JSON)
+    ├── 01_executive_overview_dashboard.png  # Screenshot: Executive Overview Dashboard
+    ├── 02_star_schema_data_model.png        # Screenshot: Sternschema-Datenmodell (1:n)
+    ├── FrischMarkt_Executive_Overview_Report.pdf # Vektorbasiertes Management-Reporting (PDF)
+    ├── dashboard_layout_specification.md    # 4-Seiten Dashboard Grid & Visual-Anordnung
+    └── corporate_theme.json                 # Importierbares Farb- & Schrift-Theme (JSON)
 ```
 
 ---

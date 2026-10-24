@@ -30,7 +30,13 @@ let
     AddMonthName = Table.AddColumn(AddMonthNum, "MonatName", each Date.MonthName([Datum], "de-DE"), type text),
     AddMonthShort = Table.AddColumn(AddMonthName, "MonatKurz", each Text.Start(Date.MonthName([Datum], "de-DE"), 3), type text),
     AddYearMonthSort = Table.AddColumn(AddMonthShort, "JahrMonatSort", each Date.Year([Datum]) * 100 + Date.Month([Datum]), Int64.Type),
-    AddWeekOfYear = Table.AddColumn(AddYearMonthSort, "Kalenderwoche", each Date.WeekOfYear([Datum], Day.Monday), Int64.Type),
+    // ISO-8601-Kalenderwoche: Date.WeekOfYear ist NICHT ISO (dort ist die Woche mit dem 1. Januar immer KW 1).
+    // ISO: Die KW gehört zu dem Jahr, in dem ihr Donnerstag liegt (z. B. 01.01.2027 = KW 53).
+    AddWeekOfYear = Table.AddColumn(AddYearMonthSort, "Kalenderwoche", each
+        let
+            Donnerstag = Date.AddDays([Datum], 3 - Date.DayOfWeek([Datum], Day.Monday))
+        in
+            Number.RoundDown((Date.DayOfYear(Donnerstag) - 1) / 7) + 1, Int64.Type),
     AddDayOfWeek = Table.AddColumn(AddWeekOfYear, "WochentagNummer", each Date.DayOfWeek([Datum], Day.Monday) + 1, Int64.Type),
     AddDayName = Table.AddColumn(AddDayOfWeek, "WochentagName", each Date.DayOfWeekName([Datum], "de-DE"), type text),
     AddIsWeekend = Table.AddColumn(AddDayName, "IstWochenende", each if Date.DayOfWeek([Datum], Day.Monday) >= 5 then true else false, type logical),

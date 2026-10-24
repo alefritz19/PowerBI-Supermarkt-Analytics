@@ -3,27 +3,27 @@
 // Modul 2: Zeitreihen- & Periodenvergleiche (Time Intelligence)
 // ================================================================================
 // Best Practice: Robuste Time Intelligence setzt eine als Datumstabelle markierte
-// Dimension (vw_dim_datum) mit ununterbrochenem Datumsbereich voraus.
+// Dimension (dim_datum) mit ununterbrochenem Datumsbereich voraus.
 // ================================================================================
 
 // 1. Bruttoumsatz im Vorjahr (Same Period Last Year - SPLY)
 Umsatz_Vorjahr = 
 CALCULATE(
     [Total_Umsatz],
-    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
+    SAMEPERIODLASTYEAR(dim_datum[Datum])
 )
 
 Umsatz_Vorjahr_SPLY = 
 CALCULATE(
     [Total_Umsatz_Brutto],
-    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
+    SAMEPERIODLASTYEAR(dim_datum[Datum])
 )
 
 // 2. Rohertrag im Vorjahr (SPLY)
 Rohertrag_Vorjahr_SPLY = 
 CALCULATE(
     [Total_Rohertrag],
-    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
+    SAMEPERIODLASTYEAR(dim_datum[Datum])
 )
 
 // 3. Absolute Umsatzveränderung zum Vorjahr (€ YoY)
@@ -54,14 +54,14 @@ DIVIDE(
 Umsatz_YTD = 
 TOTALYTD(
     [Total_Umsatz_Brutto],
-    vw_dim_datum[Datum]
+    dim_datum[Datum]
 )
 
 // 8. Kumulierter Jahresumsatz des Vorjahres (YTD SPLY)
 Umsatz_YTD_Vorjahr = 
 CALCULATE(
     [Umsatz_YTD],
-    SAMEPERIODLASTYEAR(vw_dim_datum[Datum])
+    SAMEPERIODLASTYEAR(dim_datum[Datum])
 )
 
 // 9. YTD-Wachstum zum Vorjahr (% YoY YTD)
@@ -76,21 +76,21 @@ DIVIDE(
 Umsatz_QTD = 
 TOTALQTD(
     [Total_Umsatz_Brutto],
-    vw_dim_datum[Datum]
+    dim_datum[Datum]
 )
 
 // 11. Kumulierter Monatsumsatz (Month-to-Date - MTD)
 Umsatz_MTD = 
 TOTALMTD(
     [Total_Umsatz_Brutto],
-    vw_dim_datum[Datum]
+    dim_datum[Datum]
 )
 
 // 12. Vormonatsumsatz (Month-over-Month Basis)
 Umsatz_Vormonat = 
 CALCULATE(
     [Total_Umsatz_Brutto],
-    DATEADD(vw_dim_datum[Datum], -1, MONTH)
+    DATEADD(dim_datum[Datum], -1, MONTH)
 )
 
 // 13. Monatswachstum (% MoM)
@@ -106,8 +106,8 @@ Umsatz_Rolling_3M =
 CALCULATE(
     [Total_Umsatz_Brutto],
     DATESINPERIOD(
-        vw_dim_datum[Datum],
-        MAX(vw_dim_datum[Datum]),
+        dim_datum[Datum],
+        MAX(dim_datum[Datum]),
         -3,
         MONTH
     )
@@ -118,8 +118,8 @@ Umsatz_MAT_12M =
 CALCULATE(
     [Total_Umsatz_Brutto],
     DATESINPERIOD(
-        vw_dim_datum[Datum],
-        MAX(vw_dim_datum[Datum]),
+        dim_datum[Datum],
+        MAX(dim_datum[Datum]),
         -12,
         MONTH
     )

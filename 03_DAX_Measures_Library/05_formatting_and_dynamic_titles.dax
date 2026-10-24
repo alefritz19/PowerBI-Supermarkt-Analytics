@@ -57,7 +57,7 @@ DIVIDE(
 // 2.1 Dynamischer Dashboard-Seitentitel
 Titel_Executive_Summary = 
 VAR GewaehlteFiliale = SELECTEDVALUE(vw_dim_filialen[FilialName], "Alle Filialen")
-VAR GewaehltesJahr   = SELECTEDVALUE(vw_dim_datum[Jahr], "Gesamtzeitraum")
+VAR GewaehltesJahr   = SELECTEDVALUE(dim_datum[Jahr], "Gesamtzeitraum")
 RETURN
 CONCATENATE(
     "FrischMarkt Performance-Report | ",

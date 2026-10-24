@@ -6,17 +6,17 @@
 [![DAX](https://img.shields.io/badge/DAX-Advanced_Measures-0078D4)](https://learn.microsoft.com/dax/)
 [![Power Query](https://img.shields.io/badge/Power_Query-M_Language-237804)](https://learn.microsoft.com/power-query/)
 [![SQL Server](https://img.shields.io/badge/SQL_Server-2022_DWH-CC292B?logo=microsoftsqlserver)](https://www.microsoft.com/sql-server)
-[![PL-300 Ready](https://img.shields.io/badge/Certification-PL--300_Exam_Ready-success)](#)
+[![PL-300](https://img.shields.io/badge/Lernziel-PL--300_Vorbereitung-success)](#)
 
 ---
 
 ## 📌 Projektübersicht & Unternehmenskontext
 
-Dieses Repository dokumentiert eine **vollständige, produktionsreife Business Intelligence Lösung** für das fiktive Filialunternehmen **„FrischMarkt GmbH“** (Lebensmitteleinzelhandel mit 5 Standorten in Niedersachsen und Nordrhein-Westfalen).
+Dieses Repository dokumentiert eine **vollständige Business-Intelligence-Lösung (Portfolio-Projekt mit synthetischen Daten)** für das fiktive Filialunternehmen **„FrischMarkt GmbH“** (Lebensmitteleinzelhandel mit 5 Standorten in Niedersachsen und Nordrhein-Westfalen).
 
 Das Projekt demonstriert den durchgängigen Workflow eines modernen **BI Analysts / Power BI Developers**:
-1. **DWH-Architektur & SQL Server Views:** Sauberes Sternschema nach Kimball-Methodologie, performante Indizierung und Entkopplung von ETL und Reporting.
-2. **Power Query (M) Skripte:** Robuste Datenaufnahme und eine dynamische ISO-8601-Datumstabelle mit deutscher Feiertagslogik.
+1. **DWH-Architektur & SQL Server Views:** Sauberes Sternschema nach Kimball-Methodik und Entkopplung von ETL und Reporting.
+2. **Power Query (M) Skripte:** Robuste Datenaufnahme und eine dynamische Datumstabelle mit ISO-8601-Kalenderwochen und deutschen Monats-/Wochentagsnamen (Feiertage liefert die SQL-Tabelle `dwh.dim_datum`).
 3. **DAX-Kennzahlenbibliothek:** 60+ explizite Measures (Time Intelligence YoY/MoM/YTD, Filterkontext-Manipulation via `CALCULATE`/`ALL`/`KEEPFILTERS`, dynamisches ABC-Pareto-Ranking, Kundenkarten-Penetration).
 4. **Visuelles Design:** Vollständige 4-Seiten Dashboard-Spezifikation nach IBCS-Standards mit standardisiertem JSON-Corporate-Theme.
 
@@ -46,19 +46,20 @@ Die Analyse des Datenbestands (01/2024 – 09/2026, 2,51 Mio. € Bruttoumsatz, 
 ┌────────────────────────┬──────────────────┬─────────────────┬──────────────┬───────────────┐
 │ Warengruppe            │ Bruttoumsatz     │ Rohertrag (€)   │ Marge (%)    │ Positionen    │
 ├────────────────────────┼──────────────────┼─────────────────┼──────────────┼───────────────┤
-│ Fleisch & Wurst        │ 475.013,91 €     │ 137.751,32 €    │ 30,9 %       │ 96.246        │
-│ Getränke               │ 447.786,33 €     │ 119.123,92 €    │ 34,0 %       │ 100.468       │
-│ Trockensortiment       │ 347.388,46 €     │ 90.245,87 €     │ 30,1 %       │ 94.830        │
-│ Drogerie & Haushalt    │ 289.302,41 €     │ 96.742,42 €     │ 40,4 %       │ 60.778        │
-│ Obst & Gemüse          │ 283.174,90 €     │ 106.987,21 €    │ 40,7 %       │ 114.589       │
-│ Molkereiprodukte       │ 262.689,18 €     │ 58.038,36 €     │ 24,4 %       │ 114.898       │
-│ Süßwaren & Snacks      │ 215.311,58 €     │ 68.448,85 €     │ 34,2 %       │ 78.251        │
-│ Backwaren              │ 193.205,11 €     │ 91.645,88 €     │ 51,7 %       │ 94.630        │
+│ Fleisch & Wurst        │ 475.013,91 €     │ 137.751,32 €    │ 31,0 %       │ 96.246        │
+│ Getränke               │ 447.786,33 €     │ 119.123,92 €    │ 31,7 %       │ 100.468       │
+│ Trockensortiment       │ 347.388,46 €     │ 90.245,87 €     │ 27,8 %       │ 94.830        │
+│ Drogerie & Haushalt    │ 289.302,41 €     │ 96.742,42 €     │ 39,4 %       │ 60.778        │
+│ Obst & Gemüse          │ 283.174,90 €     │ 106.987,21 €    │ 40,4 %       │ 114.589       │
+│ Molkereiprodukte       │ 262.689,18 €     │ 58.038,36 €     │ 23,6 %       │ 114.898       │
+│ Süßwaren & Snacks      │ 215.311,58 €     │ 68.448,85 €     │ 34,0 %       │ 78.251        │
+│ Backwaren              │ 193.205,11 €     │ 91.645,88 €     │ 50,8 %       │ 94.630        │
 └────────────────────────┴──────────────────┴─────────────────┴──────────────┴───────────────┘
 ```
+*Marge = Rohertrag / Nettoumsatz (gewichtet, wie Measure `Rohertrag_Marge_Pct`). Ein einfacher Mittelwert der Spalte `MargeProzent` über alle Positionen ergibt abweichende Werte, weil teure und billige Positionen gleich stark zählen.*
 
 ### 1. Margendruck bei Molkereiprodukten (Handlungsbedarf Category Management)
-* **Befund:** Obwohl Molkereiprodukte mit 114.898 Bonpositionen zu den am häufigsten gekauften Artikeln zählen, liegt die durchschnittliche Marge bei nur **24,4 %** (deutlich unter dem Supermarkt-Schnitt von 32,8 %). Im Jahr 2026 stiegen die Netto-Einkaufspreise um bis zu 9 %, während die Regalpreise nur um 2,5 % angepasst wurden.
+* **Befund:** Obwohl Molkereiprodukte mit 114.898 Bonpositionen zu den am häufigsten gekauften Artikeln zählen, liegt die Marge bei nur **23,6 %** (deutlich unter dem Supermarkt-Schnitt von 33,7 %). Zum 01.01.2026 stiegen die Netto-Einkaufspreise um bis zu 9 %, die Verkaufspreise im Schnitt nur um 6,6 %.
 * **Empfehlung:** Gezielte Förderung margenstärkerer Eigenmarken-Alternativen im Regal und sukzessive Preisanpassung bei Nischenartikeln.
 
 ### 2. Abschreibungen & Verderb (MHD-Verluste bei Frischeware)
@@ -66,7 +67,7 @@ Die Analyse des Datenbestands (01/2024 – 09/2026, 2,51 Mio. € Bruttoumsatz, 
 * **Empfehlung:** Einführung eines dynamischen Abverkaufsrabatts (-30 % Aufkleber) 48 Stunden vor Ablauf des MHD sowie Optimierung der Filial-Bestellzyklen.
 
 ### 3. Wettbewerbsdruck am Standort Braunschweig
-* **Befund:** Während die Standorte Hannover-Mitte und Bielefeld stabile Zuwächse verzeichnen, sank der Umsatz der Filiale Braunschweig ab Juni 2025 um rund **16 %** (Wettbewerber-Eröffnung im unmittelbaren Einzugsgebiet).
+* **Befund:** Während die Standorte Hannover-Mitte und Bielefeld stabile Zuwächse verzeichnen, sank der Umsatz der Filiale Braunschweig ab Juni 2025 um rund **11 %** (Ø Monatsumsatz 06/2024–05/2025: 15.934 € → 06/2025–05/2026: 14.245 €; Wettbewerber-Eröffnung im unmittelbaren Einzugsgebiet).
 * **Empfehlung:** Lokale Marketingoffensive über die Kundenkarte und exklusive Aktionen am Wochenende zur Stabilisierung der Kundenfrequenz.
 
 ---
@@ -97,8 +98,8 @@ erDiagram
         int ProduktID FK
         int AktionID FK
         smallint Menge
-        decimal Bruttoumsatz
-        decimal Nettoumsatz
+        decimal UmsatzBrutto
+        decimal UmsatzNetto
         decimal Rohertrag
     }
 
@@ -109,15 +110,15 @@ erDiagram
         int ProduktID FK
         int Menge
         string Grund
-        decimal Verlust_Netto_EUR
+        decimal VerlustNettoEUR
     }
 
     dim_produkte {
         int ProduktID PK
         string EAN
-        string Produktname
-        string Warengruppe
-        boolean IstFrischeware
+        string ProduktName
+        string KategorieName
+        boolean IstFrischware
         boolean IstEigenmarke
     }
 
@@ -131,9 +132,9 @@ erDiagram
 
     dim_filialen {
         int FilialeID PK
-        string Filialname
+        string FilialName
         string Bundesland
-        int Verkaufsflaeche_QM
+        int VerkaufsflaecheQM
     }
 
     dim_mitarbeiter {
@@ -144,15 +145,15 @@ erDiagram
 
     dim_aktionen {
         int AktionID PK
-        string Aktionsname
-        decimal Rabatt_Prozent
+        string AktionName
+        decimal RabattProzent
     }
 
     dim_datum {
         int DatumKey PK
         date Datum
         smallint Jahr
-        tinyint Monat_Nr
+        tinyint MonatNr
         tinyint KW
         boolean IstFeiertag
     }

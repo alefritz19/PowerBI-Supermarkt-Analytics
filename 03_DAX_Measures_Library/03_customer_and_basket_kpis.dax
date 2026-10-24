@@ -13,8 +13,10 @@ Anzahl_Kunden_Gesamt =
 COUNTROWS(vw_dim_kunden)
 
 // 2. Aktive Kunden (mindestens ein Einkauf im gewählten Filterzeitraum)
-Aktive_Kunden = 
-DISTINCTCOUNT(vw_fct_verkaeufe[KundeID])
+// DISTINCTCOUNTNOBLANK statt DISTINCTCOUNT: Bons ohne Kundenkarte haben KundeID = BLANK,
+// DISTINCTCOUNT würde BLANK als zusätzlichen "Kunden" mitzählen (+1).
+Aktive_Kunden =
+DISTINCTCOUNTNOBLANK(vw_fct_verkaeufe[KundeID])
 
 // 3. Durchdringungsquote Kundenkarte (% aller Einkäufe mit Kundenkarte)
 Kundenkarten_Quote_Bons_Pct = 
@@ -79,36 +81,45 @@ DIVIDE(
 )
 
 // 9. Neukunden im aktuellen Zeitraum (Ersteinkauf fand im Filterzeitraum statt)
-Neukunden_Anzahl = 
-VAR MinDate = MIN(vw_dim_datum[Datum])
-VAR MaxDate = MAX(vw_dim_datum[Datum])
+// Wichtig: Der Ersteinkauf muss über den GESAMTEN Zeitraum ermittelt werden
+// (REMOVEFILTERS auf dim_datum). Ohne das liefert MIN(BonDatum) nur den ersten Einkauf
+// innerhalb des Filterzeitraums – dann wäre jeder aktive Kunde ein "Neukunde".
+Neukunden_Anzahl =
+VAR MinDate = MIN(dim_datum[Datum])
+VAR MaxDate = MAX(dim_datum[Datum])
 RETURN
 COUNTROWS(
     FILTER(
         VALUES(vw_dim_kunden[KundeID]),
-        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) >= MinDate &&
-        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) <= MaxDate
+        VAR Ersteinkauf = CALCULATE(MIN(vw_fct_verkaeufe[BonDatum]), REMOVEFILTERS(dim_datum))
+        RETURN Ersteinkauf >= MinDate && Ersteinkauf <= MaxDate
     )
 )
 
 // 10. Umsatz von Neukunden (€)
-Neukunden_Umsatz = 
+Neukunden_Umsatz =
+VAR MinDate = MIN(dim_datum[Datum])
+VAR MaxDate = MAX(dim_datum[Datum])
+RETURN
 CALCULATE(
     [Total_Umsatz_Brutto],
     FILTER(
         VALUES(vw_dim_kunden[KundeID]),
-        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) >= MIN(vw_dim_datum[Datum]) &&
-        CALCULATE(MIN(vw_fct_verkaeufe[BonDatum])) <= MAX(vw_dim_datum[Datum])
+        VAR Ersteinkauf = CALCULATE(MIN(vw_fct_verkaeufe[BonDatum]), REMOVEFILTERS(dim_datum))
+        RETURN Ersteinkauf >= MinDate && Ersteinkauf <= MaxDate
     )
 )
 
 // 11. Warenkorb-Cross-Selling: Anteil der Bons, die mindestens 2 verschiedene Kategorien enthalten
-Bons_Multi_Kategorie_Pct = 
-VAR MultiCatBons = 
+// Achtung: DISTINCTCOUNT(vw_dim_produkte[KategorieID]) würde hier immer alle Kategorien zählen,
+// weil der Filter auf BonID bei einfacher Filterrichtung (Dimension -> Faktentabelle) nicht in die
+// Produktdimension zurückfließt. SUMMARIZE über die Faktentabelle nutzt die Beziehung Faktentabelle -> Dimension.
+Bons_Multi_Kategorie_Pct =
+VAR MultiCatBons =
     COUNTROWS(
         FILTER(
             VALUES(vw_fct_verkaeufe[BonID]),
-            CALCULATE(DISTINCTCOUNT(vw_dim_produkte[KategorieID])) >= 2
+            CALCULATE(COUNTROWS(SUMMARIZE(vw_fct_verkaeufe, vw_dim_produkte[KategorieID]))) >= 2
         )
     )
 RETURN

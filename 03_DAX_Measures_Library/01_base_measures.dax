@@ -29,11 +29,13 @@ SUM(vw_fct_verkaeufe[WareneinsatzNetto])
 Total_Rohertrag = 
 [Total_Umsatz_Netto] - [Total_Wareneinsatz]
 
-// 6. Rohertragsmarge (% vom Bruttoumsatz / Nettoumsatz)
+// 6. Rohertragsmarge (% vom Nettoumsatz)
+// Rohertrag ist ein Nettowert -> Nenner muss der Nettoumsatz sein. Rohertrag / Bruttoumsatz
+// würde die Marge um die Mehrwertsteuer zu niedrig ausweisen.
 Rohertragsmarge_Pct = 
 DIVIDE(
     [Total_Rohertrag],
-    [Total_Umsatz],
+    [Total_Umsatz_Netto],
     0
 )
 

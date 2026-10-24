@@ -49,7 +49,7 @@ In Microsoft Power BI Desktop basiert eine skalierbare und saubere Projektstrukt
 * **Methode A (Über die Formelleiste):**
   1. Im Datenbereich rechts die Zieltabelle auswählen (Best Practice: Eine dedizierte Kennzahlentabelle `_Measures` anlegen).
   2. Im Menüband auf **„Neues Measure“** (*New Measure*) klicken.
-  3. Die DAX-Formel aus der Bibliothek einfügen (z. B. `Total_Umsatz = SUM(fct_verkaeufe[Gesamtbetrag])`) und mit der Eingabetaste bestätigen.
+  3. Die DAX-Formel aus der Bibliothek einfügen (z. B. `Total_Umsatz_Brutto = SUM(vw_fct_verkaeufe[UmsatzBrutto])`) und mit der Eingabetaste bestätigen.
 * **Methode B (Über die DAX-Abfrageansicht / DAX Query View):**
   1. In der linken vertikalen Navigationsleiste auf das 4. Symbol klicken: **„DAX-Abfrageansicht“**.
   2. Hier können DAX-Formeln im Stapel editiert, formatiert, analysiert und direkt im Datenmodell gespeichert werden.
@@ -57,10 +57,11 @@ In Microsoft Power BI Desktop basiert eine skalierbare und saubere Projektstrukt
 #### 2. Modellbeziehungen konfigurieren (Sternschema):
 1. In der linken Navigationsleiste auf das 3. Symbol klicken: **„Modellansicht“** (*Model View*).
 2. Primärschlüssel (1-Seite) per Drag & Drop mit den Fremdschlüsseln (n-Seite) der Faktentabelle verbinden:
-   * `dim_datum[Datum]` ➔ `fct_verkaeufe[EinkaufDatum]`
-   * `dim_kunden[KundeID]` ➔ `fct_verkaeufe[KundeID]`
-   * `dim_produkte[ProduktID]` ➔ `fct_verkaeufe[ProduktID]`
-   * `dim_mitarbeiter[MitarbeiterID]` ➔ `fct_verkaeufe[MitarbeiterID]`
+   * `dim_datum[Datum]` ➔ `vw_fct_verkaeufe[BonDatum]`
+   * `vw_dim_kunden[KundeID]` ➔ `vw_fct_verkaeufe[KundeID]`
+   * `vw_dim_produkte[ProduktID]` ➔ `vw_fct_verkaeufe[ProduktID]`
+   * `vw_dim_mitarbeiter[MitarbeiterID]` ➔ `vw_fct_verkaeufe[MitarbeiterID]`
+   * `vw_dim_filialen[FilialeID]` ➔ `vw_fct_verkaeufe[FilialeID]`
 3. Sicherstellen, dass alle Beziehungen die Kardinalität **1:n (Eins-zu-Viele)** und eine **einfache Filterrichtung (Single)** aufweisen.
 
 ---

@@ -5,7 +5,7 @@
 // Enthält fortgeschrittene DAX-Muster zur gezielten Manipulation des Filterkontexts:
 // • CALCULATE mit ALL / ALLEXCEPT / KEEPFILTERS / REMOVEFILTERS
 // • Dynamische SVG- und Text-Indikatoren (▲ / ▼ / ►) nach IBCS-Standard
-// • Kontextsensitive Chart-Titel für ein interaktives Executive Reporting
+// • Kontextsensitive Diagrammtitel für ein interaktives Management-Reporting
 // ================================================================================
 
 // --------------------------------------------------------------------------------

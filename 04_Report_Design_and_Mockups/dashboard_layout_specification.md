@@ -1,29 +1,29 @@
 # 🎨 Power BI Dashboard Layout-Spezifikation (4-Seiten Report)
 ### Konzeptionelle Vorlage für das Supermarkt Analytics Dashboard
 
-Dieses Dokument beschreibt das visuelle Design, die Anordnung der Visuals (Grid-Layout), Filterpanele und Interaktionen für den 4-seitigen Managementbericht in Power BI Desktop.
+Dieses Dokument beschreibt das visuelle Design, die Anordnung der Visuals (Raster-Layout), Filterbereiche und Interaktionen für den 4-seitigen Managementbericht in Power BI Desktop.
 
 ---
 
 ## 🧭 Seitenübersicht & Navigation
 
-* **Seite 1:** `01_Executive_Overview` — High-Level Management Cockpit & KPI Cards
+* **Seite 1:** `01_Executive_Overview` — Management-Cockpit & KPI-Karten
 * **Seite 2:** `02_Sortiments_und_Margenanalyse` — Pareto-Kurve, ABC-Matrix & Rohertrag
 * **Seite 3:** `03_Zeitreihen_und_Trends` — MoM/YoY Zeitreihen, YTD-Verlauf & Saisonalität
 * **Seite 4:** `04_Kunden_und_Warenkorbanalyse` — Bonwert, Altersgruppen & Wiederkaufrate
 
 ---
 
-## 📄 Seite 1: Executive Overview (Management Cockpit)
+## 📄 Seite 1: Management-Cockpit (Executive Overview)
 
-### Kopfzeile (Header / Y: 0 - 80px)
+### Kopfzeile (Y: 0 - 80px)
 * **Titel:** `[Titel_Executive_Summary]` (Aktualisiert sich automatisch bei Slicer-Auswahl)
 * **Globale Slicer (Rechts oben):**
   * Dropdown: `dim_datum[Jahr]`
   * Dropdown: `dim_datum[Quartal]`
   * Dropdown: `vw_dim_produkte[KategorieName]`
 
-### KPI-Kartenleiste (Top Cards / Y: 100 - 200px)
+### KPI-Kartenleiste (Y: 100 - 200px)
 1. **Karte 1: Gesamtumsatz**  
    * Wert: `[Total_Umsatz_Brutto]` (Währungsformat: `#,##0 €`)
    * Subtext / Callout: `[Titel_Umsatz_Trend_Card]` (Dynamische Farbe über `[Farbe_YoY_Trend_Hex]`)
@@ -36,11 +36,11 @@ Dieses Dokument beschreibt das visuelle Design, die Anordnung der Visuals (Grid-
 5. **Karte 5: Aktive Kunden**  
    * Wert: `[Aktive_Kunden]`
 
-### Hauptvisuals (Body / Y: 220 - 700px)
+### Hauptvisuals (Y: 220 - 700px)
 * **Links (60% Breite): Balkendiagramm (Clustered Bar Chart)**
   * Y-Achse: `vw_dim_produkte[KategorieName]`
   * X-Achse: `[Total_Umsatz_Brutto]` und `[Umsatz_Vorjahr_SPLY]` (Vergleich Vorjahr vs. Ist)
-* **Rechts oben (40% Breite): Donut Chart**
+* **Rechts oben (40% Breite): Ringdiagramm**
   * Legende: `vw_dim_kunden[Altersgruppe]`
   * Werte: `[Total_Umsatz_Brutto]`
 * **Rechts unten (40% Breite): Matrix-Tabelle**
@@ -51,11 +51,11 @@ Dieses Dokument beschreibt das visuelle Design, die Anordnung der Visuals (Grid-
 
 ## 📄 Seite 2: Sortiments- & Margenanalyse (ABC-Pareto)
 
-* **Visual 1 (Oben): Kombiniertes Linien- und Säulendiagramm (Pareto Chart)**
+* **Visual 1 (Oben): Kombiniertes Linien- und Säulendiagramm (Pareto-Diagramm)**
   * X-Achse: `vw_dim_produkte[ProduktName]` (Sortiert nach `[Total_Umsatz_Brutto]` absteigend)
   * Spaltenwerte: `[Total_Umsatz_Brutto]` (Säulen)
   * Zeilenwerte: `[Kumulierter_Umsatz_Anteil_Pct]` (Linie, Sekundärachse bis 100%)
-* **Visual 2 (Unten links): Streudiagramm (Scatter Plot: Portfolio Matrix)**
+* **Visual 2 (Unten links): Punktdiagramm (Portfolio-Matrix)**
   * X-Achse: `[Total_Umsatz_Brutto]` (Umsatzvolumen)
   * Y-Achse: `[Rohertrag_Marge_Pct]` (Rentabilität)
   * Blasengröße: `[Total_Menge]`
@@ -72,7 +72,7 @@ Dieses Dokument beschreibt das visuelle Design, die Anordnung der Visuals (Grid-
 * **Visual 1 (Oben): Liniendiagramm mit Vorjahresvergleich**
   * X-Achse: `dim_datum[MonatName]` (Sortiert nach `JahrMonatSort`)
   * Linien: `[Total_Umsatz_Brutto]`, `[Umsatz_Vorjahr_SPLY]`, `[Umsatz_Rolling_3M]`
-* **Visual 2 (Mitte): Wasserfall-Diagramm (Waterfall Chart)**
+* **Visual 2 (Mitte): Wasserfalldiagramm**
   * Kategorie: `dim_datum[Quartal]`
   * Y-Achse: `[Umsatz_YoY_Diff]` (Zeigt positive und negative Wachstumsbeiträge der Quartale)
 * **Visual 3 (Unten): YTD-Verlaufskurve**
@@ -91,5 +91,5 @@ Dieses Dokument beschreibt das visuelle Design, die Anordnung der Visuals (Grid-
   * X-Achse: `vw_dim_kunden[Stadt]`
   * Y-Achse: `[Total_Umsatz_Brutto]`
   * Legende: `vw_dim_produkte[KategorieName]`
-* **Visual 3: Detail-Tabelle mit Drillthrough-Fähigkeit**
+* **Visual 3: Detailtabelle mit Drillthrough**
   * Detaillierte Bon-Übersicht für tiefergehende Analysen

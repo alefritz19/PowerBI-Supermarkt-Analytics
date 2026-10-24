@@ -1,5 +1,5 @@
 # 🧭 Power BI Architektur-Leitfaden: Das 3-Ebenen-Prinzip
-### Praktischer Leitfaden: Platzierung von M-Code, DAX-Measures und Report-Design in Power BI Desktop
+### Praktischer Leitfaden: Platzierung von M-Code, DAX-Measures und Berichtsdesign in Power BI Desktop
 
 ---
 
@@ -66,14 +66,14 @@ In Microsoft Power BI Desktop basiert eine skalierbare und saubere Projektstrukt
 
 ---
 
-## 🟣 EBENE 3: Visualisierung & Report-Design (Berichtsansicht / Canvas)
+## 🟣 EBENE 3: Visualisierung & Berichtsdesign (Berichtsansicht)
 
 * **Zugehörige Dateien:** `corporate_theme.json` und `dashboard_layout_specification.md` aus dem Verzeichnis `04_Report_Design_and_Mockups/`.
 * **Architektur-Grundsatz:** Das Frontend des Berichts wird auf der **Berichtsansicht** (1. Symbol links oben) zusammengestellt. Hier werden visuelle Elemente nach Usability-, IBCS- und Corporate-Design-Standards angeordnet.
 
 ### Schritt-für-Schritt-Anleitung:
 
-#### 1. Corporate Design Theme importieren (`corporate_theme.json`):
+#### 1. Design im Corporate Design importieren (`corporate_theme.json`):
 1. Im oberen horizontalen Menüband auf die Registerkarte **„Ansicht“** (*View*) wechseln.
 2. Im Bereich **„Designs“** den Dropdown-Pfeil anklicken, um die Design-Galerie zu öffnen.
 3. Unten im Menü auf **„Nach Designs suchen“** (*Browse for themes*) klicken.

@@ -4,10 +4,10 @@
 -- Zieldatenbank: SupermarktDWH (Microsoft SQL Server 2022)
 -- Fiktives Unternehmen: FrischMarkt GmbH
 -- ================================================================================
--- BEST PRACTICE FÜR ENTERPRISE POWER BI:
+-- BEWÄHRTE PRAXIS FÜR POWER BI:
 -- Tabellen sollten niemals direkt als unstrukturierte Rohdaten importiert werden.
 -- Views und Dimensionen im 'dwh'-Schema abstrahieren die physische Datenbank,
--- benennen Spalten nach Standard-Business-Semantik und ermöglichen 
+-- benennen Spalten nach fachlicher Standardsemantik und ermöglichen 
 -- performante 1:n-Sternschema-Beziehungen mit einfacher Filterrichtung.
 -- ================================================================================
 
